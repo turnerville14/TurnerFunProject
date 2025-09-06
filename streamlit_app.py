@@ -1,116 +1,120 @@
 import streamlit as st
-import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
 
 # Page config
-st.set_page_config(page_title="Stock Valuation & Investment Advisor 📊", layout="wide")
+st.set_page_config(page_title="Funds Usage Tracker", layout="wide")
 
 # Title
-st.title("📈 Stock Valuation & Investment Advisor")
-st.markdown("Analyze a stock's historical performance and get a valuation-based recommendation.")
+st.title("💰 Funds Usage Tracker")
+st.markdown("Track your allocated budget, expenses, and remaining funds by Department and Unit.")
 
-# Input
-ticker = st.text_input("Enter Stock Ticker (e.g., AAPL, MSFT)", "AAPL")
+# --- Data Setup ---
+funddata = pd.DataFrame([
+    ("Name", "Department", "Unit"),
+    ("Name 1", "A", 1), ("Name 2", "A", 1), ("Name 3", "A", 2), ("Name 4", "A", 2),
+    ("Name 5", "A", 3), ("Name 6", "A", 3), ("Name 7", "A", 4), ("Name 8", "A", 4),
+    ("Name 9", "A", 5), ("Name 10", "B", 1), ("Name 11", "B", 1), ("Name 12", "B", 2),
+    ("Name 13", "B", 2), ("Name 14", "B", 2), ("Name 15", "B", 2), ("Name 16", "B", 3),
+    ("Name 17", "B", 3), ("Name 18", "B", 3), ("Name 19", "C", 1), ("Name 20", "C", 2),
+    ("Name 21", "C", 3), ("Name 22", "C", 3), ("Name 23", "C", 3), ("Name 24", "D", 1),
+    ("Name 25", "D", 2), ("Name 26", "D", 2), ("Name 27", "D", 3), ("Name 28", "D", 3),
+    ("Name 29", "D", 3), ("Name 30", "D", 3), ("Name 31", "D", 4), ("Name 32", "D", 4),
+    ("Name 33", "D", 4), ("Name 34", "D", 5), ("Name 35", "D", 6), ("Name 36", "D", 6),
+    ("Name 37", "D", 6), ("Name 38", "D", 7), ("Name 39", "D", 7), ("Name 40", "D", 7)
+], columns=["Name", "Department", "Unit"]).iloc[1:]
 
-# Cached data fetch (only serializable objects)
-@st.cache_data
-def get_data(ticker):
-    stock = yf.Ticker(ticker)
-    end_date = datetime.today()
-    start_date = end_date - timedelta(days=5*365)
-    price_data = stock.history(start=start_date, end=end_date)
-    dividends = stock.dividends
-    return price_data, dividends
+expdata = pd.DataFrame([
+    ("Type", "Department", "Unit", "Amount"),
+    ("Dept", "A", 0, 5), ("Dept", "B", 0, 10), ("Dept", "C", 0, 5), ("Dept", "D", 0, 8),
+    ("Unit", "A", 1, 5), ("Unit", "A", 2, 10), ("Unit", "A", 3, 5), ("Unit", "A", 3, 8),
+    ("Unit", "A", 3, 5), ("Unit", "A", 4, 10), ("Unit", "B", 1, 5), ("Unit", "B", 2, 8),
+    ("Unit", "B", 3, 10), ("Unit", "B", 3, 5), ("Unit", "B", 3, 8), ("Unit", "B", 3, 5),
+    ("Unit", "D", 2, 10), ("Unit", "D", 3, 5), ("Unit", "D", 4, 8), ("Unit", "D", 5, 10),
+    ("Unit", "D", 6, 5), ("Unit", "D", 7, 8), ("Unit", "D", 2, 5), ("Unit", "D", 3, 10),
+    ("Unit", "D", 4, 5), ("Unit", "D", 5, 8)
+], columns=["Type", "Department", "Unit", "Amount"]).iloc[1:]
 
-# Get cached data
-price_data, dividends = get_data(ticker)
+budget_dict = {"Department": 80, "Unit": 50}
 
-# Get uncached stock object
-stock = yf.Ticker(ticker)
+# --- User Input ---
+st.sidebar.header("🔍 Filter Criteria")
+selected_departments = st.sidebar.multiselect("Select Departments", sorted(funddata["Department"].unique()))
+selected_units = st.sidebar.multiselect("Select Units", sorted(funddata["Unit"].unique()))
 
-# Section: Price Chart
-st.subheader("📉 Historical Price (5 Years)")
-st.line_chart(price_data['Close'])
+# --- Helper Functions ---
+def calculate_allocation(df, dept, unit):
+    dept_count = df[df["Department"] == dept].shape[0]
+    unit_count = df[(df["Department"] == dept) & (df["Unit"] == unit)].shape[0]
+    return dept_count * budget_dict["Department"], unit_count * budget_dict["Unit"]
 
-# Section: Dividend History
-st.subheader("💰 Dividend History")
-if not dividends.empty:
-    st.bar_chart(dividends)
-else:
-    st.info("No dividend data available for this stock.")
+def calculate_expenses(df, dept, unit, level):
+    if level == "department":
+        # Department-level expenses: Unit should be 0
+        return df[(df["Type"] == "Dept") & (df["Department"] == dept) & (df["Unit"] == 0)]["Amount"].sum()
+    elif level == "unit":
+        # Unit-level expenses: Match both department and unit
+        return df[(df["Type"] == "Unit") & (df["Department"] == dept) & (df["Unit"] == unit)]["Amount"].sum()
+    return 0
 
-# Section: Valuation Metrics
-st.subheader("📊 Valuation Analysis")
+def plot_funds_chart(title, allocated, used, container):
+    remaining = allocated - used
+    labels = [f"Used: ${used}", f"Remaining: ${remaining}"]
+    sizes = [used, remaining]
+    colors = ["#F44336", "#4CAF50"]
 
-# PE Ratio
-try:
-    pe_ratio = stock.info['trailingPE']
-    st.metric("Trailing P/E Ratio", f"{pe_ratio:.2f}")
-except:
-    st.warning("P/E Ratio not available.")
+    fig, ax = plt.subplots(figsize=(4, 4))
+    wedges, texts, autotexts = ax.pie(
+        sizes,
+        labels=labels,
+        colors=colors,
+        autopct=lambda pct: f"${int(round(pct * allocated / 100))}",
+        startangle=90,
+        textprops={'fontsize': 8}
+    )
+    ax.set_title(title, fontsize=10)
+    container.pyplot(fig)
 
-# Dividend Discount Model (DDM)
-if not dividends.empty:
-    avg_dividend = dividends[-5:].mean()
-    growth_rate = (dividends[-1] / dividends[-5] - 1) if len(dividends) >= 5 else 0.05
-    required_return = 0.10  # Assume 10% required return
-    try:
-        intrinsic_value = avg_dividend * (1 + growth_rate) / (required_return - growth_rate)
-        current_price = price_data['Close'][-1]
-        st.metric("Intrinsic Value (DDM)", f"${intrinsic_value:.2f}")
-        st.metric("Current Price", f"${current_price:.2f}")
+# --- Visualization Containers ---
+st.subheader("📊 Department View")
+dept_container = st.container()
+cols_dept = dept_container.columns(5)
 
-        # Recommendation
-        if intrinsic_value > current_price * 1.1:
-            st.success("✅ Recommendation: BUY — Stock appears undervalued.")
-            st.markdown(f"**Reason:** Intrinsic value (${intrinsic_value:.2f}) is significantly higher than current price (${current_price:.2f}).")
-        elif intrinsic_value < current_price * 0.9:
-            st.error("❌ Recommendation: SELL — Stock appears overvalued.")
-            st.markdown(f"**Reason:** Intrinsic value (${intrinsic_value:.2f}) is significantly lower than current price (${current_price:.2f}).")
-        else:
-            st.warning("⚖️ Recommendation: HOLD — Stock is fairly valued.")
-            st.markdown(f"**Reason:** Intrinsic value (${intrinsic_value:.2f}) is close to current price (${current_price:.2f}).")
-    except:
-        st.warning("Unable to calculate intrinsic value due to missing data.")
-else:
-    st.warning("Dividend data insufficient for DDM valuation.")
+for i, dept in enumerate(selected_departments):
+    if i % 5 == 0:
+        cols_dept = dept_container.columns(5)  # Start a new row every 5 charts
 
-# Section: EPS & Revenue Growth
-st.subheader("📈 EPS & Revenue Growth")
-try:
-    eps_history = stock.earnings
-    if not eps_history.empty:
-        st.line_chart(eps_history[['Earnings', 'Revenue']])
-        st.markdown("**Interpretation:** Rising EPS and Revenue suggest improving profitability and business growth.")
-    else:
-        st.info("EPS and Revenue data not available.")
-except:
-    st.warning("Unable to fetch EPS and Revenue data.")
+    allocated, _ = calculate_allocation(funddata, dept, 0)
+    used = calculate_expenses(expdata, dept, 0, "department")
 
-# Section: Earnings Calendar
-st.subheader("🗓️ Upcoming Earnings Date")
-try:
-    earnings_date = stock.calendar.loc['Earnings Date'][0]
-    st.metric("Next Earnings Report", earnings_date.strftime("%Y-%m-%d"))
-    st.markdown("**Tip:** Earnings reports often cause price volatility. Consider timing your entry/exit accordingly.")
-except:
-    st.info("Earnings date not available.")
+    plot_funds_chart(
+        f"Department {dept} Budget Allocation: ${allocated}",
+        allocated,
+        used,
+        cols_dept[i % 5]
+    )
 
-# Section: Analyst Ratings
-st.subheader("🧠 Analyst Recommendations")
-try:
-    recs = stock.recommendations
-    if not recs.empty:
-        latest_recs = recs.tail(10)
-        st.dataframe(latest_recs[['Firm', 'To Grade', 'From Grade', 'Action']])
-        st.markdown("**Note:** Analyst upgrades/downgrades can influence investor sentiment.")
-    else:
-        st.info("No recent analyst recommendations available.")
-except:
-    st.warning("Unable to fetch analyst ratings.")
+st.subheader("📊 Unit View")
+unit_container = st.container()
+cols_unit = unit_container.columns(5)
+unit_chart_index = 0
 
-# Footer
-st.markdown("---")
-st.caption("Powered by Yahoo Finance & Streamlit • Not financial advice")
+for unit in selected_units:
+    for dept in selected_departments:
+        # Only proceed if this (dept, unit) combo exists in funddata
+        if not funddata[(funddata["Department"] == dept) & (funddata["Unit"] == unit)].empty:
+            # Start a new row every 5 charts
+            if unit_chart_index % 5 == 0:
+                cols_unit = unit_container.columns(5)
+
+            _, allocated = calculate_allocation(funddata, dept, unit)
+            used = calculate_expenses(expdata, dept, unit, "unit")
+
+            plot_funds_chart(
+                f"Department {dept} Unit {unit} Budget Allocation: ${allocated}",
+                allocated,
+                used,
+                cols_unit[unit_chart_index % 5]
+            )
+
+            unit_chart_index += 1
