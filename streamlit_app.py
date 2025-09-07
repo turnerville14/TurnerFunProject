@@ -11,11 +11,9 @@ if "logged_in" not in st.session_state:
 
 # --- Login Component ---
 if not st.session_state.logged_in:
-    st.markdown("## 🔐 Please log in to continue")
-
     cols = st.columns([1, 2, 1])  # Center the login box
     with cols[1].container(border=True, height="stretch", vertical_alignment="center"):
-        st.markdown("### Login")
+        st.markdown("### 🔐 Please log in to continue")
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
         if st.button("Login"):
