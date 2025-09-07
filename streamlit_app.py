@@ -2,10 +2,34 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Page config
+# --- Page Config ---
 st.set_page_config(page_title="Funds Usage Tracker", layout="wide")
 
-# Title
+# --- Session State for Login ---
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+# --- Login Component ---
+if not st.session_state.logged_in:
+    st.markdown("## 🔐 Please log in to continue")
+
+    cols = st.columns([1, 2, 1])  # Center the login box
+    with cols[1].container(border=True, height="stretch", vertical_alignment="center"):
+        st.markdown("### Login")
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        if st.button("Login"):
+            if username == "admin" and password == "1234":  # Replace with secure logic
+                st.session_state.logged_in = True
+                st.success("Login successful!")
+            else:
+                st.error("Invalid credentials")
+
+# --- Stop App if Not Logged In ---
+if not st.session_state.get("logged_in", False):
+    st.stop()
+
+# --- Main App Content ---
 st.title("💰 Funds Usage Tracker")
 st.markdown("Track your allocated budget, expenses, and remaining funds by Department and Unit.")
 
@@ -37,10 +61,31 @@ expdata = pd.DataFrame([
 
 budget_dict = {"Department": 80, "Unit": 50}
 
-# --- User Input ---
-st.sidebar.header("🔍 Filter Criteria")
-selected_departments = st.sidebar.multiselect("Select Departments", sorted(funddata["Department"].unique()))
-selected_units = st.sidebar.multiselect("Select Units", sorted(funddata["Unit"].unique()))
+# --- Filter UI ---
+st.markdown("#### 🔍 Filter Criteria")
+filter_cols = st.columns([1, 1, 2])  # Department in col[0], Unit in col[1]
+
+# --- Department Selector ---
+with filter_cols[0].container(border=True, height="stretch", vertical_alignment="center"):
+    selected_departments = st.multiselect(
+        "Select Departments",
+        options=sorted(funddata["Department"].unique())
+    )
+
+# --- Filter Units Based on Selected Departments ---
+if selected_departments:
+    filtered_units = sorted(
+        funddata[funddata["Department"].isin(selected_departments)]["Unit"].unique()
+    )
+else:
+    filtered_units = []
+
+# --- Unit Selector ---
+with filter_cols[1].container(border=True, height="stretch", vertical_alignment="center"):
+    selected_units = st.multiselect(
+        "Select Units",
+        options=filtered_units
+    )
 
 # --- Helper Functions ---
 def calculate_allocation(df, dept, unit):
@@ -50,10 +95,8 @@ def calculate_allocation(df, dept, unit):
 
 def calculate_expenses(df, dept, unit, level):
     if level == "department":
-        # Department-level expenses: Unit should be 0
         return df[(df["Type"] == "Dept") & (df["Department"] == dept) & (df["Unit"] == 0)]["Amount"].sum()
     elif level == "unit":
-        # Unit-level expenses: Match both department and unit
         return df[(df["Type"] == "Unit") & (df["Department"] == dept) & (df["Unit"] == unit)]["Amount"].sum()
     return 0
 
@@ -61,60 +104,62 @@ def plot_funds_chart(title, allocated, used, container):
     remaining = allocated - used
     labels = [f"Used: ${used}", f"Remaining: ${remaining}"]
     sizes = [used, remaining]
-    colors = ["#F44336", "#4CAF50"]
+    colors = ["#FF6B6B", "#4CAF50"]
 
-    fig, ax = plt.subplots(figsize=(4, 4))
+    fig, ax = plt.subplots(figsize=(4, 4), facecolor="#1e1e1e")
+    ax.set_facecolor("#1e1e1e")
     wedges, texts, autotexts = ax.pie(
         sizes,
         labels=labels,
         colors=colors,
         autopct=lambda pct: f"${int(round(pct * allocated / 100))}",
         startangle=90,
-        textprops={'fontsize': 8}
+        textprops={'color': 'white', 'fontsize': 8}
     )
-    ax.set_title(title, fontsize=10)
+    ax.set_title(title, fontsize=10, color='white')
     container.pyplot(fig)
 
-# --- Visualization Containers ---
-st.subheader("📊 Department View")
+# --- Department Charts ---
+st.markdown("#### 📊 Department View")
 dept_container = st.container()
 cols_dept = dept_container.columns(5)
 
 for i, dept in enumerate(selected_departments):
     if i % 5 == 0:
-        cols_dept = dept_container.columns(5)  # Start a new row every 5 charts
+        cols_dept = dept_container.columns(5)
 
     allocated, _ = calculate_allocation(funddata, dept, 0)
     used = calculate_expenses(expdata, dept, 0, "department")
 
+    chart_cell = cols_dept[i % 5].container(border=True, height="stretch", vertical_alignment="center")
     plot_funds_chart(
         f"Department {dept} Budget Allocation: ${allocated}",
         allocated,
         used,
-        cols_dept[i % 5]
+        chart_cell
     )
 
-st.subheader("📊 Unit View")
+# --- Unit Charts ---
+st.markdown("##### 📊 Unit View")
 unit_container = st.container()
 cols_unit = unit_container.columns(5)
 unit_chart_index = 0
 
 for unit in selected_units:
     for dept in selected_departments:
-        # Only proceed if this (dept, unit) combo exists in funddata
         if not funddata[(funddata["Department"] == dept) & (funddata["Unit"] == unit)].empty:
-            # Start a new row every 5 charts
             if unit_chart_index % 5 == 0:
                 cols_unit = unit_container.columns(5)
 
             _, allocated = calculate_allocation(funddata, dept, unit)
             used = calculate_expenses(expdata, dept, unit, "unit")
 
+            chart_cell = cols_unit[unit_chart_index % 5].container(border=True, height="stretch", vertical_alignment="center")
             plot_funds_chart(
                 f"Department {dept} Unit {unit} Budget Allocation: ${allocated}",
                 allocated,
                 used,
-                cols_unit[unit_chart_index % 5]
+                chart_cell
             )
 
             unit_chart_index += 1
