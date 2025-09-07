@@ -124,14 +124,18 @@ def plot_funds_chart(title, allocated, used, container):
     ax.set_title(title, fontsize=10, color='white')
     container.pyplot(fig)
 
+def get_chart_columns(count, max_per_row=5):
+    # Always return 5 columns for consistent sizing
+    padding = (max_per_row - count) // 2 if count < max_per_row else 0
+    layout = [1]*padding + [1]*count + [1]*(max_per_row - count - padding)
+    return st.columns(layout), padding
+
 # --- Department Charts ---
 if selected_departments:
     st.markdown("###### ")
     st.markdown("<h4 style='text-align:center;'>📊 Department View</h4>", unsafe_allow_html=True)
 
-    chart_count = len(selected_departments)
-    padding = (5 - chart_count) // 2 if chart_count < 5 else 0
-    chart_cols = st.columns([1]*padding + [1]*chart_count + [1]*padding)
+    chart_cols, padding = get_chart_columns(len(selected_departments))
 
     for i, dept in enumerate(selected_departments):
         allocated, _ = calculate_allocation(funddata, dept, 0)
@@ -156,22 +160,18 @@ unit_chart_data = [
 if unit_chart_data:
     st.markdown("<h4 style='text-align:center;'>📊 Unit View</h4>", unsafe_allow_html=True)
 
-    chart_count = len(unit_chart_data)
-    padding = (5 - chart_count % 5) // 2 if chart_count % 5 and chart_count < 5 else 0
+    for i in range(0, len(unit_chart_data), 5):
+        row_data = unit_chart_data[i:i+5]
+        chart_cols, padding = get_chart_columns(len(row_data))
 
-    for i, (dept, unit) in enumerate(unit_chart_data):
-        if i % 5 == 0:
-            row_count = min(5, chart_count - i)
-            row_padding = (5 - row_count) // 2
-            chart_cols = st.columns([1]*row_padding + [1]*row_count + [1]*row_padding)
+        for j, (dept, unit) in enumerate(row_data):
+            _, allocated = calculate_allocation(funddata, dept, unit)
+            used = calculate_expenses(expdata, dept, unit, "unit")
 
-        _, allocated = calculate_allocation(funddata, dept, unit)
-        used = calculate_expenses(expdata, dept, unit, "unit")
-
-        chart_cell = chart_cols[(i % 5) + row_padding].container(border=True, height="stretch", vertical_alignment="center")
-        plot_funds_chart(
-            f"Department {dept} Unit {unit} Budget Allocation: ${allocated}",
-            allocated,
-            used,
-            chart_cell
-        )
+            chart_cell = chart_cols[padding + j].container(border=True, height="stretch", vertical_alignment="center")
+            plot_funds_chart(
+                f"Department {dept} Unit {unit} Budget Allocation: ${allocated}",
+                allocated,
+                used,
+                chart_cell
+            )
