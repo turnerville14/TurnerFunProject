@@ -30,8 +30,12 @@ if not st.session_state.get("logged_in", False):
     st.stop()
 
 # --- Main App Content ---
-st.title("💰 Funds Usage Tracker")
-st.markdown("Track your allocated budget, expenses, and remaining funds by Department and Unit.")
+st.markdown("<h2 style='text-align:center;'>💰 Funds Usage Tracker</h2>", unsafe_allow_html=True)
+st.markdown(
+    "<div style='text-align:center;'>Track your allocated budget, expenses, and remaining funds by Department and Unit.</div>",
+    unsafe_allow_html=True
+)
+st.markdown("###### ")
 
 # --- Data Setup ---
 funddata = pd.DataFrame([
@@ -62,30 +66,33 @@ expdata = pd.DataFrame([
 budget_dict = {"Department": 80, "Unit": 50}
 
 # --- Filter UI ---
-st.markdown("#### 🔍 Filter Criteria")
-filter_cols = st.columns([1, 1, 2])  # Department in col[0], Unit in col[1]
+st.markdown("<h4 style='text-align:center;'>🔍 Filter Criteria</h4>", unsafe_allow_html=True)
+layout_cols = st.columns([2, 6, 2])  # Center everything in col[1]
 
-# --- Department Selector ---
-with filter_cols[0].container(border=True, height="stretch", vertical_alignment="center"):
-    selected_departments = st.multiselect(
-        "Select Departments",
-        options=sorted(funddata["Department"].unique())
-    )
+with layout_cols[1]:
+    filter_cols = st.columns([1, 1])  # Side-by-side filters
 
-# --- Filter Units Based on Selected Departments ---
-if selected_departments:
-    filtered_units = sorted(
-        funddata[funddata["Department"].isin(selected_departments)]["Unit"].unique()
-    )
-else:
-    filtered_units = []
+    # --- Department Selector ---
+    with filter_cols[0].container(border=True, height="stretch", vertical_alignment="center"):
+        selected_departments = st.multiselect(
+            "Select Departments",
+            options=sorted(funddata["Department"].unique())
+        )
 
-# --- Unit Selector ---
-with filter_cols[1].container(border=True, height="stretch", vertical_alignment="center"):
-    selected_units = st.multiselect(
-        "Select Units",
-        options=filtered_units
-    )
+    # --- Filter Units Based on Selected Departments ---
+    if selected_departments:
+        filtered_units = sorted(
+            funddata[funddata["Department"].isin(selected_departments)]["Unit"].unique()
+        )
+    else:
+        filtered_units = []
+
+    # --- Unit Selector ---
+    with filter_cols[1].container(border=True, height="stretch", vertical_alignment="center"):
+        selected_units = st.multiselect(
+            "Select Units",
+            options=filtered_units
+        )
 
 # --- Helper Functions ---
 def calculate_allocation(df, dept, unit):
@@ -120,46 +127,53 @@ def plot_funds_chart(title, allocated, used, container):
     container.pyplot(fig)
 
 # --- Department Charts ---
-st.markdown("#### 📊 Department View")
-dept_container = st.container()
-cols_dept = dept_container.columns(5)
+if selected_departments:
+    st.markdown("###### ")
+    st.markdown("<h4 style='text-align:center;'>📊 Department View</h4>", unsafe_allow_html=True)
 
-for i, dept in enumerate(selected_departments):
-    if i % 5 == 0:
-        cols_dept = dept_container.columns(5)
+    chart_count = len(selected_departments)
+    padding = (5 - chart_count) // 2 if chart_count < 5 else 0
+    chart_cols = st.columns([1]*padding + [1]*chart_count + [1]*padding)
 
-    allocated, _ = calculate_allocation(funddata, dept, 0)
-    used = calculate_expenses(expdata, dept, 0, "department")
+    for i, dept in enumerate(selected_departments):
+        allocated, _ = calculate_allocation(funddata, dept, 0)
+        used = calculate_expenses(expdata, dept, 0, "department")
 
-    chart_cell = cols_dept[i % 5].container(border=True, height="stretch", vertical_alignment="center")
-    plot_funds_chart(
-        f"Department {dept} Budget Allocation: ${allocated}",
-        allocated,
-        used,
-        chart_cell
-    )
+        chart_cell = chart_cols[padding + i].container(border=True, height="stretch", vertical_alignment="center")
+        plot_funds_chart(
+            f"Department {dept} Budget Allocation: ${allocated}",
+            allocated,
+            used,
+            chart_cell
+        )
 
 # --- Unit Charts ---
-st.markdown("##### 📊 Unit View")
-unit_container = st.container()
-cols_unit = unit_container.columns(5)
-unit_chart_index = 0
+unit_chart_data = [
+    (dept, unit)
+    for unit in selected_units
+    for dept in selected_departments
+    if not funddata[(funddata["Department"] == dept) & (funddata["Unit"] == unit)].empty
+]
 
-for unit in selected_units:
-    for dept in selected_departments:
-        if not funddata[(funddata["Department"] == dept) & (funddata["Unit"] == unit)].empty:
-            if unit_chart_index % 5 == 0:
-                cols_unit = unit_container.columns(5)
+if unit_chart_data:
+    st.markdown("<h4 style='text-align:center;'>📊 Unit View</h4>", unsafe_allow_html=True)
 
-            _, allocated = calculate_allocation(funddata, dept, unit)
-            used = calculate_expenses(expdata, dept, unit, "unit")
+    chart_count = len(unit_chart_data)
+    padding = (5 - chart_count % 5) // 2 if chart_count % 5 and chart_count < 5 else 0
 
-            chart_cell = cols_unit[unit_chart_index % 5].container(border=True, height="stretch", vertical_alignment="center")
-            plot_funds_chart(
-                f"Department {dept} Unit {unit} Budget Allocation: ${allocated}",
-                allocated,
-                used,
-                chart_cell
-            )
+    for i, (dept, unit) in enumerate(unit_chart_data):
+        if i % 5 == 0:
+            row_count = min(5, chart_count - i)
+            row_padding = (5 - row_count) // 2
+            chart_cols = st.columns([1]*row_padding + [1]*row_count + [1]*row_padding)
 
-            unit_chart_index += 1
+        _, allocated = calculate_allocation(funddata, dept, unit)
+        used = calculate_expenses(expdata, dept, unit, "unit")
+
+        chart_cell = chart_cols[(i % 5) + row_padding].container(border=True, height="stretch", vertical_alignment="center")
+        plot_funds_chart(
+            f"Department {dept} Unit {unit} Budget Allocation: ${allocated}",
+            allocated,
+            used,
+            chart_cell
+        )
