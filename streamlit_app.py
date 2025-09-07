@@ -19,7 +19,7 @@ if not st.session_state.logged_in:
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
         if st.button("Login"):
-            if username == "admin" and password == "1234":  # Replace with secure logic
+            if username == "admin" and password == "Password123":  # Replace with secure logic
                 st.session_state.logged_in = True
                 st.success("Login successful!")
             else:
