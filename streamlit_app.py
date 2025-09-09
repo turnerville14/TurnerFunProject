@@ -9,6 +9,70 @@ st.set_page_config(page_title="Funds Usage Tracker", layout="wide")
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
+def rgb_glow_container(text):
+    st.markdown(f"""
+    <style>
+    .rgb-box {{
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+        margin: auto;
+        padding: 20px;
+        border-radius: 12px;
+        background-color: #111;
+        color: white;
+        text-align: center;
+        font-size: 1.2rem;
+        overflow: hidden;
+        border: 2px solid transparent;
+    }}
+
+    .rgb-box::after {{
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+        box-sizing: border-box;
+        border: 2px solid transparent;
+        background: none;
+        pointer-events: none;
+        animation: rgbTrail 4s linear infinite;
+        mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    }}
+
+    @keyframes rgbTrail {{
+        0% {{
+            border-image: linear-gradient(0deg, red, orange, yellow, green, cyan, blue, violet) 1;
+        }}
+        20% {{
+            border-image: linear-gradient(72deg, red, orange, yellow, green, cyan, blue, violet) 1;
+        }}
+        40% {{
+            border-image: linear-gradient(144deg, red, orange, yellow, green, cyan, blue, violet) 1;
+        }}
+        60% {{
+            border-image: linear-gradient(216deg, red, orange, yellow, green, cyan, blue, violet) 1;
+        }}
+        80% {{
+            border-image: linear-gradient(288deg, red, orange, yellow, green, cyan, blue, violet) 1;
+        }}
+        100% {{
+            border-image: linear-gradient(360deg, red, orange, yellow, green, cyan, blue, violet) 1;
+        }}
+    }}
+    </style>
+    <div class="rgb-box">
+        {text}
+    </div>
+    """, unsafe_allow_html=True)
+
+
+cols0 = st.columns([1, 2, 1])  # Center the login box
+with cols0[1]:
+    rgb_glow_container("🚀 <strong>Welcome</strong>")
+    st.write("###")
+
 # --- Login Component ---
 if not st.session_state.logged_in:
     cols = st.columns([1, 2, 1])  # Center the login box
