@@ -4,6 +4,24 @@ from datetime import datetime, timedelta, time, date
 
 st.set_page_config(layout="centered", page_title="Trip Allowance Calculator")
 
+# --- Session State for Login ---
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+# --- Redirect if Not Logged In ---
+if not st.session_state.logged_in:
+    errorcols = st.columns([1, 2, 1])  # Center the login box 
+    with errorcols[1].container(height="stretch", vertical_alignment="center"):
+        st.error("❌ Invalid Login Session! ❌")
+        st.markdown("""
+            <meta http-equiv="refresh" content="0; url=/" />
+        """, unsafe_allow_html=True)
+    st.stop()
+
+# --- Stop App if Not Logged In ---
+if not st.session_state.get("logged_in", False):
+    st.stop()
+
 # 🌍 Country Daily Rates
 country_rates = {
     "Singapore": 100,
