@@ -3,52 +3,10 @@ import streamlit as st
 # --- Page Config ---
 st.set_page_config(page_title="Login Page", layout="wide")
 
-def hide_sidebar():
-    st.markdown("""
-        <style>
-            /* Hide the sidebar toggle */
-            [data-testid="collapsedControl"] {
-                display: none;
-            }
-
-            /* Collapse sidebar width */
-            section[data-testid="stSidebar"] {
-                display: none;
-            }
-
-            /* Expand main content to full width */
-            .main {
-                margin-left: 0 !important;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-
-def show_sidebar():
-    st.markdown("""
-        <style>
-            /* Restore sidebar toggle */
-            [data-testid="collapsedControl"] {
-                display: block;
-            }
-
-            /* Restore sidebar section */
-            section[data-testid="stSidebar"] {
-                display: block;
-            }
-
-            /* Reset main content margin */
-            .main {
-                margin-left: 18rem !important;  /* Default sidebar width */
-            }
-        </style>
-    """, unsafe_allow_html=True)
-
-
 # --- Session State for Login ---
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     # Apply sidebar hiding
-    hide_sidebar()
 
 def rgb_container():
     st.markdown("""
@@ -139,7 +97,6 @@ with col2:
     if password:
         if password == "Password123":
             st.session_state.logged_in = True
-            show_sidebar()
             st.write("")
             st.write("")
             st.success("Access Granted ✅")
