@@ -101,7 +101,7 @@ with col2:
             st.write("")
             st.success("Access Granted ✅")
             st.success("Navigate via the side panel")
-            st.switch_page("pages/loginpage.py")
+            st.switch_page("loginpage.py")
         else:
             st.write("")
             st.write("")
