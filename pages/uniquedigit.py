@@ -3,25 +3,28 @@ import pandas as pd
 from itertools import product
 import re
 
-st.set_page_config(page_title="Custom Digit Combinations", layout="centered")
-
-# --- Session State for Login ---
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
-# --- Redirect if Not Logged In ---
-if not st.session_state.logged_in:
-    errorcols = st.columns([1, 2, 1])  # Center the login box 
-    with errorcols[1].container(height="stretch", vertical_alignment="center"):
-        st.error("❌ Invalid Login Session! ❌")
-        st.markdown("""
-            <meta http-equiv="refresh" content="0; url=/" />
-        """, unsafe_allow_html=True)
-    st.stop()
-
-# --- Stop App if Not Logged In ---
+#check if there is an active login
 if not st.session_state.get("logged_in", False):
-    st.stop()
+    st.warning("🔒 You must log in first.")
+    st.switch_page("streamlit_app.py")
+
+# --- Page Config ---
+st.set_page_config(page_title="Custom Digit Combinations", layout="wide")
+
+# Create 5 columns for layout (padding on sides)
+cols = st.columns([1, 2, 2, 2, 1])
+
+with cols[1]:
+    if st.button("💰 Funds", key="btn1"):
+        st.switch_page("pages/funds.py")
+
+with cols[2]:
+    if st.button("🧮 Calculator", key="btn2"):
+        st.switch_page("pages/calculator.py")
+
+with cols[3]:
+    if st.button("🔢 Unique Digit", key="btn3"):
+        st.switch_page("pages/uniquedigit.py")
 
 st.title("🔢 Unique 4-Digit Combinations Generator")
 

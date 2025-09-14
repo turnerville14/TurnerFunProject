@@ -6,8 +6,8 @@ st.set_page_config(page_title="Login Page", layout="wide")
 # --- Session State for Login ---
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-    # Apply sidebar hiding
 
+# code to style the login box
 def rgb_container():
     st.markdown("""
         <style>
@@ -101,6 +101,7 @@ with col2:
             st.write("")
             st.success("Access Granted ✅")
             st.success("Navigate via the side panel")
+            st.switch_page("pages/loginpage.py")
         else:
             st.write("")
             st.write("")
