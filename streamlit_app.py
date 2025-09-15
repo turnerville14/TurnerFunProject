@@ -23,6 +23,30 @@ if "logged_in" not in st.session_state:
 if "active_tab" not in st.session_state:
     st.session_state.active_tab = None
 
+def inject_css():
+    st.markdown("""
+        <style>
+        /* Remove vertical spacing around selectboxes */
+        div[data-testid="stSelectbox"] {
+            padding-top: 0rem;
+            padding-bottom: 0rem;
+            margin-top: 0rem;
+            margin-bottom: 0rem;
+        }
+
+        /* Optional: tighten column spacing */
+        [data-testid="column"] > div {
+            gap: 0rem !important;
+        }
+
+        /* Optional: hide selectbox label space */
+        label[data-testid="stLabel"] {
+            display: none;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+
 # --- RGB Login Container ---
 def rgb_container():
     st.markdown("""
@@ -220,30 +244,44 @@ if st.session_state.logged_in:
         st.markdown("<h3 style='text-align:center;'>🌍 Trip Allowance Calculator</h2>", unsafe_allow_html=True)
 
         current_year = datetime.now().year
-        col1, col2 = st.columns(2)
+        col0, col1, col2, col3, col4 = st.columns([1,1,1,1,1])
+        with col0:
+            country = st.selectbox("Select Country", list(country_rates.keys()))
         with col1:
             eta_date = st.date_input("ETA Date", value=date(current_year, 1, 1))
-            eta_time = st.time_input("ETA Time", value=time(0, 0))
-            eta = datetime.combine(eta_date, eta_time)
         with col2:
+            eta_time = st.time_input("ETA Time", value=time(0, 0))
+        with col3:
             etd_date = st.date_input("ETD Date", value=date(current_year, 1, 4))
+        with col4:
             etd_time = st.time_input("ETD Time", value=time(0, 0))
-            etd = datetime.combine(etd_date, etd_time)
 
-        country = st.selectbox("Select Country", list(country_rates.keys()))
+        eta = datetime.combine(eta_date, eta_time)
+        etd = datetime.combine(etd_date, etd_time)
 
         # 🍽️ Meal Inputs in Table Format
         st.markdown("<h3 style='text-align:center;'>🍽️ Daily Meal Declarations</h2>", unsafe_allow_html=True)
         meal_inputs = {}
         day_ranges = generate_day_ranges(eta, etd)
 
-        meal_table = []
+        meal_table = []        
+        colheader = st.columns(5)
+        colheader[0].markdown("<h6 style='text-align: center;'>Date</h4>", unsafe_allow_html=True)
+        colheader[1].markdown("<h6 style='text-align: center;'>Country</h4>", unsafe_allow_html=True)
+        colheader[2].markdown("<h6 style='text-align: center;'>Breakfast</h4>", unsafe_allow_html=True)
+        colheader[3].markdown("<h6 style='text-align: center;'>Lunch</h4>", unsafe_allow_html=True)
+        colheader[4].markdown("<h6 style='text-align: center;'>Dinner</h4>", unsafe_allow_html=True)
         for day_str, start, end in day_ranges:
-            cols = st.columns(4)
-            cols[0].markdown(f"**{day_str}**")
-            b = cols[1].selectbox("Breakfast", ["Yes", "No", "NA"], key=f"{day_str}_b")
-            l = cols[2].selectbox("Lunch", ["Yes", "No", "NA"], key=f"{day_str}_l")
-            d = cols[3].selectbox("Dinner", ["Yes", "No", "NA"], key=f"{day_str}_d")
+            cols = st.columns(5)
+            cols[0].write("")
+            cols[0].write("")
+            cols[0].markdown(f"<h6 style='text-align: center;'>{day_str}</h6>", unsafe_allow_html=True)
+            cols[1].write("")
+            cols[1].write("")
+            cols[1].markdown(f"<h6 style='text-align: center;'>{country}</h6>", unsafe_allow_html=True)
+            b = cols[2].selectbox("", ["NA", "Yes", "No"], key=f"{day_str}_b")
+            l = cols[3].selectbox("", ["NA", "Yes", "No"], key=f"{day_str}_l")
+            d = cols[4].selectbox("", ["NA", "Yes", "No"], key=f"{day_str}_d")
             meal_inputs[day_str] = {"Breakfast": b, "Lunch": l, "Dinner": d}
 
         # 🧮 Calculate
