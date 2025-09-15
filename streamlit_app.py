@@ -8,6 +8,15 @@ import matplotlib.pyplot as plt
 # --- Page Config ---
 st.set_page_config(page_title="JG Portal", layout="wide")
 
+st.markdown("""
+    <style>
+    .stApp {
+        background-color: #0e1117;
+        color: white;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # --- Session State ---
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -137,7 +146,7 @@ if st.session_state.logged_in:
             st.session_state.active_tab = "unique_digit"
 
     # --- Module Logic ---
-    if st.session_state.active_tab == "funds":
+    if st.session_state.active_tab == "calculator":
         # 🌍 Country Daily Rates
         country_rates = {
             "Singapore": 100,
@@ -245,7 +254,7 @@ if st.session_state.logged_in:
             st.markdown("#### 📊 Daily Breakdown")
             st.dataframe(df.style.format({"Final Rate": "${:,.2f}"}))
 
-    elif st.session_state.active_tab == "calculator":
+    elif st.session_state.active_tab == "funds":
         # --- Main App Content ---
         st.markdown("<h3 style='text-align:center;'>💰 Funds Usage Tracker</h2>", unsafe_allow_html=True)
         st.markdown(
@@ -441,6 +450,7 @@ if st.session_state.logged_in:
 
             # Display results
             df = pd.DataFrame(unique_combinations, columns=["1st", "2nd", "3rd", "4th"])
+            st.subheader(f"**✅ Total Unique Combinations:** {len(df)}")
             st.subheader("📋 Unique Combinations")
             st.dataframe(df, height=1200, use_container_width=True)
-            st.markdown(f"**✅ Total Unique Combinations:** {len(df)}")
+            
