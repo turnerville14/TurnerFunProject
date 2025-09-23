@@ -1,0 +1,25 @@
+Type,Dept,Unit,Dept1 Fund,Unit Fund,Dept2 Fund
+D1,Dept1,,100,,
+D2,Dept1,,,,100
+U1,Dept1,1,,100,
+D1,Dept2,,500,,
+D2,Dept2,,,,600
+D2,Dept2,,,,800
+D2,Dept2,,,,50
+U1,Dept2,1,,100,
+U1,Dept2,2,,100,
+U1,Dept2,3,,100,
+U1,Dept2,1,,100,
+U1,Dept2,2,,100,
+U1,Dept2,3,,100,
+D1,Dept3,,50,,
+D1,Dept3,,60,,
+D2,Dept3,,,,90
+D2,Dept3,,,,81
+D2,Dept3,,,,90
+U1,Dept3,1,,100,
+U1,Dept3,2,,100,
+U1,Dept3,3,,100,
+U1,Dept3,4,,100,
+U1,Dept3,1,,100,
+U1,Dept3,2,,100,

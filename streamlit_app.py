@@ -157,7 +157,7 @@ with logincol[1]:
 
 # --- Post-login UI ---
 if st.session_state.logged_in:
-    cols = st.columns([1, 2, 2, 2, 1])
+    cols = st.columns([1, 2, 2, 2, 2, 2, 1])
 
     with cols[1]:
         if st.button("💰 Funds", key="btn1"):
@@ -168,7 +168,13 @@ if st.session_state.logged_in:
     with cols[3]:
         if st.button("🔢 Unique Digit", key="btn3"):
             st.session_state.active_tab = "unique_digit"
-
+    with cols[4]:
+        if st.button("🔢 Database Reader", key="btn4"):
+            st.session_state.active_tab = "db_reader"
+    with cols[5]:
+        if st.button("🔢 Funds Reader", key="btn5"):
+            st.session_state.active_tab = "fund_reader"
+    
     # --- Module Logic ---
     if st.session_state.active_tab == "calculator":
         # 🌍 Country Daily Rates
@@ -492,3 +498,63 @@ if st.session_state.logged_in:
             st.subheader("📋 Unique Combinations")
             st.dataframe(df, height=1200, use_container_width=True)
             
+    elif st.session_state.active_tab == "db_reader":
+        # Load CSV from root folder
+        df = pd.read_csv("database.csv")
+
+        st.write("📝 Edit CSV Data Below")
+        edited_df = st.data_editor(df, num_rows="dynamic")
+
+        # Save button
+        if st.button("💾 Save Changes"):
+            edited_df.to_csv("database.csv", index=False)
+            st.success("✅ Changes saved to database.csv")
+
+        # Calculate totals
+        total_a = edited_df[edited_df["Department"] == "A"]["Amount"].sum()
+        total_b = edited_df[edited_df["Department"] == "B"]["Amount"].sum()
+        grand_total = edited_df["Amount"].sum()
+
+        # Display totals
+        st.markdown("### 💰 Department Spending Summary")
+        st.write(f"**Department A Total:** ${total_a:,.2f}")
+        st.write(f"**Department B Total:** ${total_b:,.2f}")
+        st.write(f"**Grand Total:** ${grand_total:,.2f}")
+
+    elif st.session_state.active_tab == "fund_reader":
+        def load_and_clean_funds(file_path):
+            # Load and rename columns
+            df = pd.read_csv(file_path)
+            df.columns = ['Type', 'Dept', 'Unit', 'Dept1_Fund', 'Unit_Fund', 'Dept2_Fund']
+
+            # Resolve correct amount based on Type
+            def resolve_amount(row):
+                if row['Type'] == 'D1':
+                    return row['Dept1_Fund']
+                elif row['Type'] == 'D2':
+                    return row['Dept2_Fund']
+                elif row['Type'] == 'U1':
+                    return row['Unit_Fund']
+                return None
+
+            df['Amount'] = df.apply(resolve_amount, axis=1)
+
+            # Build dictionary
+            fund_dict = {
+                (row['Type'], row['Dept'], row['Unit']): row['Amount']
+                for _, row in df.iterrows()
+            }
+
+            return df[['Type', 'Dept', 'Unit', 'Amount']], fund_dict
+
+        # Streamlit UI
+        st.title("💰 Fund Allocation Viewer")
+
+        cleaned_df, funds_dict = load_and_clean_funds("funds.csv")
+
+        st.subheader("📊 Cleaned Fund Table")
+        st.table(cleaned_df)
+
+        st.subheader("🧠 Fund Dictionary")
+        st.json(funds_dict)
+
