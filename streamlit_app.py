@@ -177,126 +177,85 @@ if st.session_state.logged_in:
     
     # --- Module Logic ---
     if st.session_state.active_tab == "calculator":
-        # 🌍 Country Daily Rates
-        country_rates = {
-            "Singapore": 100,
-            "Cambodia": 120,
-            "Thailand": 130,
-            "Indonesia": 140
-        }
+        # 🌍 Load rates
+        oldrate = pd.read_csv("oldrate.csv")
+        newrate = pd.read_csv("newrate.csv")
 
-        # 🍽️ Meal Eligibility Logic
-        def is_meal_provided(b, l, d):
-            combo = [b, l, d]
-            yes_count = combo.count("Yes")
-            na_count = combo.count("NA")
-            return yes_count >= 1 and na_count >= 2 or yes_count == 2 and na_count == 1
+        # Helper to parse datetime from separate date and time inputs
+        def combine_datetime(date, time_str):
+            return datetime.combine(date, datetime.strptime(time_str, "%H:%M").time())
 
-        # 📉 Monthly Discount Logic
-        def get_discount_for_date(date, eta):
-            month_diff = (date.year - eta.year) * 12 + (date.month - eta.month)
-            if month_diff == 0:
-                return 1.0
-            elif month_diff in [1, 2]:
-                return 0.75
-            else:
-                return 0.5
-
-        # 🕒 Generate True 24-Hour Blocks from ETA
-        def generate_day_ranges(eta, etd):
-            ranges = []
-            current_start = eta
-            while current_start < etd:
+        # Helper to generate 24-hour blocks
+        def generate_period_blocks(start_dt, end_dt):
+            blocks = []
+            current_start = start_dt
+            while current_start + timedelta(hours=24) < end_dt:
                 current_end = current_start + timedelta(hours=24)
-                if current_end > etd:
-                    current_end = etd
-                ranges.append((current_start.date().strftime("%Y-%m-%d"), current_start, current_end))
+                blocks.append((current_start, current_end))
                 current_start = current_end
-            return ranges
+            blocks.append((current_start, end_dt))
+            return blocks
 
-        # 🧮 Core Calculation
-        def calculate_allowance(ranges, country, meal_inputs):
-            base_rate = country_rates.get(country, 0)
-            breakdown = []
-            total_allowance = 0
+        colsheader = st.columns([3, 1])  # Wider left column, narrow right column
 
-            for day_str, start, end in ranges:
-                duration = round((end - start).total_seconds() / 3600)
-                is_partial = duration < 24
-                meals = meal_inputs.get(day_str, {"Breakfast": "NA", "Lunch": "NA", "Dinner": "NA"})
-                meals_yes = is_meal_provided(meals["Breakfast"], meals["Lunch"], meals["Dinner"])
-                modifier = 0.33 if meals_yes else 1.0
-                discount = get_discount_for_date(start.date(), ranges[0][1].date())
-                final_rate = base_rate * discount * modifier
-                total_allowance += final_rate
+        with colsheader[0]:
+            st.markdown("### ✈️ Travel Segments")
 
-                breakdown.append({
-                    "Date": day_str,
-                    "Time Range": f"{start.strftime('%H:%M')} → {end.strftime('%H:%M')}",
-                    "Duration (hrs)": f"{duration}" + (" 🟡" if is_partial else ""),
-                    "Breakfast": meals["Breakfast"],
-                    "Lunch": meals["Lunch"],
-                    "Dinner": meals["Dinner"],
-                    "Meals Provided": "Yes" if meals_yes else "No",
-                    "Rate Modifier": f"{int(modifier * 100)}%",
-                    "Discount": f"{int(discount * 100)}%",
-                    "Final Rate": round(final_rate, 2)
-                })
+        with colsheader[1]:
+            multi_flight = st.toggle("Multi or Transit Flights?", value=False)
+        
+        segments = []
 
-            df = pd.DataFrame(breakdown)
-            return total_allowance, df
+        with st.container(border=True):
+            flight_count = 1
+            if multi_flight:
+                flight_count = st.number_input("Number of flight segments", min_value=1, max_value=10, value=1)
 
-        # 🖥️ UI
-        st.markdown("<h3 style='text-align:center;'>🌍 Trip Allowance Calculator</h2>", unsafe_allow_html=True)
+            for i in range(flight_count):
+                with st.container(border=True):
+                    st.markdown(f"###### Flight {f'{i+1} Details' if multi_flight else 'Details'}")
+                    cols = st.columns(4)
+                    eta_date = cols[0].date_input(f"ETA Date {i+1}", key=f"eta_date_{i}")
+                    eta_time = cols[1].text_input(f"ETA Time {i+1} (hh:mm)", value="18:00", key=f"eta_time_{i}")
+                    etd_date = cols[2].date_input(f"ETD Date {i+1}", key=f"etd_date_{i}")
+                    etd_time = cols[3].text_input(f"ETD Time {i+1} (hh:mm)", value="12:00", key=f"etd_time_{i}")
 
-        current_year = datetime.now().year
-        col0, col1, col2, col3, col4 = st.columns([1,1,1,1,1])
-        with col0:
-            country = st.selectbox("Select Country", list(country_rates.keys()))
-        with col1:
-            eta_date = st.date_input("ETA Date", value=date(current_year, 1, 1))
-        with col2:
-            eta_time = st.time_input("ETA Time", value=time(0, 0))
-        with col3:
-            etd_date = st.date_input("ETD Date", value=date(current_year, 1, 4))
-        with col4:
-            etd_time = st.time_input("ETD Time", value=time(0, 0))
+                    segments.append({
+                        "start": combine_datetime(eta_date, eta_time),
+                        "end": combine_datetime(etd_date, etd_time)
+                    })
 
-        eta = datetime.combine(eta_date, eta_time)
-        etd = datetime.combine(etd_date, etd_time)
+        # Generate travel blocks
+        travel_blocks = []
+        for seg in segments:
+            travel_blocks.extend(generate_period_blocks(seg["start"], seg["end"]))
 
-        # 🍽️ Meal Inputs in Table Format
-        st.markdown("<h3 style='text-align:center;'>🍽️ Daily Meal Declarations</h2>", unsafe_allow_html=True)
-        meal_inputs = {}
-        day_ranges = generate_day_ranges(eta, etd)
+        # Editable table setup
+        st.markdown("### 🗓️ Daily Travel Sequence")
+        country_options = newrate["Country"].dropna().unique().tolist()
+        default_country = None
 
-        meal_table = []        
-        colheader = st.columns(5)
-        colheader[0].markdown("<h6 style='text-align: center;'>Date</h4>", unsafe_allow_html=True)
-        colheader[1].markdown("<h6 style='text-align: center;'>Country</h4>", unsafe_allow_html=True)
-        colheader[2].markdown("<h6 style='text-align: center;'>Breakfast</h4>", unsafe_allow_html=True)
-        colheader[3].markdown("<h6 style='text-align: center;'>Lunch</h4>", unsafe_allow_html=True)
-        colheader[4].markdown("<h6 style='text-align: center;'>Dinner</h4>", unsafe_allow_html=True)
-        for day_str, start, end in day_ranges:
-            cols = st.columns(5)
-            cols[0].write("")
-            cols[0].write("")
-            cols[0].markdown(f"<h6 style='text-align: center;'>{day_str}</h6>", unsafe_allow_html=True)
-            cols[1].write("")
-            cols[1].write("")
-            cols[1].markdown(f"<h6 style='text-align: center;'>{country}</h6>", unsafe_allow_html=True)
-            b = cols[2].selectbox("", ["NA", "Yes", "No"], key=f"{day_str}_b")
-            l = cols[3].selectbox("", ["NA", "Yes", "No"], key=f"{day_str}_l")
-            d = cols[4].selectbox("", ["NA", "Yes", "No"], key=f"{day_str}_d")
-            meal_inputs[day_str] = {"Breakfast": b, "Lunch": l, "Dinner": d}
+        editable_data = pd.DataFrame([{
+            "Country": default_country,
+            "Airport": "",
+            "Period": f"{block[0].strftime('%d %b %y %H:%M')} to {block[1].strftime('%d %b %y %H:%M')}",
+            "Breakfast": "No",
+            "Lunch": "No",
+            "Dinner": "No"
+        } for block in travel_blocks])
 
-        # 🧮 Calculate
-        if st.button("Calculate Allowance"):
-            total, df = calculate_allowance(day_ranges, country, meal_inputs)
-            st.markdown("### 🧾 Trip Summary")
-            st.markdown(f"**Total Allowance: ${total:,.2f}**")
-            st.markdown("#### 📊 Daily Breakdown")
-            st.dataframe(df.style.format({"Final Rate": "${:,.2f}"}))
+        edited_table = st.data_editor(
+            editable_data,
+            num_rows="dynamic",
+            column_config={
+                "Country": st.column_config.SelectboxColumn("Country", options=country_options),
+                "Breakfast": st.column_config.SelectboxColumn("Breakfast", options=["No", "Yes", "NA"]),
+                "Lunch": st.column_config.SelectboxColumn("Lunch", options=["No", "Yes", "NA"]),
+                "Dinner": st.column_config.SelectboxColumn("Dinner", options=["No", "Yes", "NA"]),
+            }
+
+        )
+
 
     elif st.session_state.active_tab == "funds":
         # --- Main App Content ---
