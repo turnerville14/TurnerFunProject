@@ -196,82 +196,84 @@ if st.session_state.logged_in:
             blocks.append((current_start, end_dt))
             return blocks
 
-        st.markdown("#### ✈️ Step 1 - Indicate your Travel Segments")
+        with st.container(border=True):
         
-        flight_type = st.radio("Choose your trip type",["Single Country", "Multiple Country/Transit Included"],index=0)
+            st.markdown("#### ✈️ Step 1 - Indicate your Travel Segments")
+            
+            flight_type = st.radio("Choose your trip type",["Single Country", "Multiple Country/Transit Included"],index=0)
 
-        segments = []
-        country_options = newrate["Country"].dropna().unique().tolist()
-        
-        if flight_type == "Single Country":
-            with st.container(border=True):
-                st.markdown("###### Flight Details")
+            segments = []
+            country_options = newrate["Country"].dropna().unique().tolist()
+            
+            if flight_type == "Single Country":
+                with st.container(border=True):
+                    st.markdown("###### Flight Details")
 
-                cols = st.columns([2, 2, 2, 2, 2])  # Add extra column for country
-                selected_country = cols[0].selectbox("Country", options=country_options, key="country_single")
-                eta_date_default = datetime.today().date()
-                eta_date = cols[1].date_input("ETA Date", value=eta_date_default, key="eta_date_single")
-                eta_time = cols[2].text_input(f"ETA Time", value="00:00", help="Enter time in 24-hour format, e.g. 18:00", key=f"eta_time_single")
-                etd_date_default = eta_date + timedelta(days=1)
-                etd_date = cols[3].date_input("ETD Date", value=etd_date_default, key="etd_date_single")
-                etd_time = cols[4].text_input("ETD Time", value="00:00", help="Enter time in 24-hour format, e.g. 12:45", key="etd_time_single")
+                    cols = st.columns([2, 2, 2, 2, 2])  # Add extra column for country
+                    selected_country = cols[0].selectbox("Country", options=country_options, key="country_single")
+                    eta_date_default = datetime.today().date()
+                    eta_date = cols[1].date_input("ETA Date", value=eta_date_default, key="eta_date_single")
+                    eta_time = cols[2].text_input(f"ETA Time", value="00:00", help="Enter time in 24-hour format, e.g. 18:00", key=f"eta_time_single")
+                    etd_date_default = eta_date + timedelta(days=1)
+                    etd_date = cols[3].date_input("ETD Date", value=etd_date_default, key="etd_date_single")
+                    etd_time = cols[4].text_input("ETD Time", value="00:00", help="Enter time in 24-hour format, e.g. 12:45", key="etd_time_single")
 
-                try:
-                    start_dt = combine_datetime(eta_date, eta_time)
-                    end_dt = combine_datetime(etd_date, etd_time)
-                    segments.append({
-                        "start": start_dt,
-                        "end": end_dt,
-                        "country": selected_country
-                    })
-                except ValueError:
-                    st.error(f"❌ Invalid time format. Please use hh:mm (e.g. 18:00).")
+                    try:
+                        start_dt = combine_datetime(eta_date, eta_time)
+                        end_dt = combine_datetime(etd_date, etd_time)
+                        segments.append({
+                            "start": start_dt,
+                            "end": end_dt,
+                            "country": selected_country
+                        })
+                    except ValueError:
+                        st.error(f"❌ Invalid time format. Please use hh:mm (e.g. 18:00).")
 
-        elif flight_type == "Multiple Country/Transit Included":
-            with st.container(border=True):
-                cols = st.columns([2, 6])
-                with cols[0]:
-                    flight_count = st.number_input("Number of flight segments", min_value=2, max_value=10, value=2)
+            elif flight_type == "Multiple Country/Transit Included":
+                with st.container(border=True):
+                    cols = st.columns([2, 6])
+                    with cols[0]:
+                        flight_count = st.number_input("Number of flight segments", min_value=2, max_value=10, value=2)
 
-                for i in range(flight_count):
-                    with st.container(border=True):
-                        st.markdown(f"###### {'Flight 1 Details' if i == 0 else f'Flight {i+1} or Transit Details'}")
+                    for i in range(flight_count):
+                        with st.container(border=True):
+                            st.markdown(f"###### {'Flight 1 Details' if i == 0 else f'Flight {i+1} or Transit Details'}")
 
-                        cols = st.columns([2, 2, 2, 2, 2])
-                        selected_country = cols[0].selectbox("Country", options=country_options, key=f"country_single_{i}")
+                            cols = st.columns([2, 2, 2, 2, 2])
+                            selected_country = cols[0].selectbox("Country", options=country_options, key=f"country_single_{i}")
 
-                        # Default ETA Date for next flight = ETD Date of previous flight
-                        if i == 0:
-                            eta_date_default = datetime.today().date()
-                        else:
-                            eta_date_default = segments[i - 1]["end"].date()
+                            # Default ETA Date for next flight = ETD Date of previous flight
+                            if i == 0:
+                                eta_date_default = datetime.today().date()
+                            else:
+                                eta_date_default = segments[i - 1]["end"].date()
 
-                        eta_date_default = datetime.today().date() if i == 0 else segments[i - 1]["end"].date()
-                        eta_date = cols[1].date_input(f"ETA Date {i+1}", value=eta_date_default, key=f"eta_date_{i}")
-                        eta_time = cols[2].text_input(
-                            f"ETA Time {i+1}", value="00:00",
-                            help="Enter time in 24-hour format, e.g. 18:00",
-                            key=f"eta_time_{i}"
-                        )
-                        etd_date_default = eta_date + timedelta(days=1)
-                        etd_date = cols[3].date_input(f"ETD Date {i+1}", value=etd_date_default, key=f"etd_date_{i}")
+                            eta_date_default = datetime.today().date() if i == 0 else segments[i - 1]["end"].date()
+                            eta_date = cols[1].date_input(f"ETA Date {i+1}", value=eta_date_default, key=f"eta_date_{i}")
+                            eta_time = cols[2].text_input(
+                                f"ETA Time {i+1}", value="00:00",
+                                help="Enter time in 24-hour format, e.g. 18:00",
+                                key=f"eta_time_{i}"
+                            )
+                            etd_date_default = eta_date + timedelta(days=1)
+                            etd_date = cols[3].date_input(f"ETD Date {i+1}", value=etd_date_default, key=f"etd_date_{i}")
 
-                        etd_time = cols[4].text_input(
-                            f"ETD Time {i+1}", value="00:00",
-                            help="Enter time in 24-hour format, e.g. 12:45",
-                            key=f"etd_time_{i}"
-                        )
+                            etd_time = cols[4].text_input(
+                                f"ETD Time {i+1}", value="00:00",
+                                help="Enter time in 24-hour format, e.g. 12:45",
+                                key=f"etd_time_{i}"
+                            )
 
-                        try:
-                            start_dt = combine_datetime(eta_date, eta_time)
-                            end_dt = combine_datetime(etd_date, etd_time)
-                            segments.append({
-                                "start": start_dt,
-                                "end": end_dt,
-                                "country": selected_country
-                            })
-                        except ValueError:
-                            st.error(f"❌ Invalid time format in Flight {i+1}. Please use hh:mm (e.g. 18:00).")
+                            try:
+                                start_dt = combine_datetime(eta_date, eta_time)
+                                end_dt = combine_datetime(etd_date, etd_time)
+                                segments.append({
+                                    "start": start_dt,
+                                    "end": end_dt,
+                                    "country": selected_country
+                                })
+                            except ValueError:
+                                st.error(f"❌ Invalid time format in Flight {i+1}. Please use hh:mm (e.g. 18:00).")
 
 
         # Generate travel blocks with country info
@@ -284,37 +286,114 @@ if st.session_state.logged_in:
                     "end": block[1],
                     "country": seg.get("country", None)  # fallback if not set
                 })
-
+        
         # Editable table setup
-        st.markdown("#### 🍽️ Step 2 - Meals Declaration")
+        with st.container(border=True):
+            
+            st.markdown("#### 🍽️ Step 2 - Meals Declaration")
 
-        full_meals = st.radio("Was at least 1 full meal provided throughout your trip?",["Yes", "No"],index=0)
+            full_meals = st.radio("Was at least 1 full meal provided throughout your trip?",["Yes", "No"],index=0)
 
-        if full_meals == "Yes":
-            st.markdown("##### 🗓️ Declare meals")
-            country_options = newrate["Country"].dropna().unique().tolist()
+            if full_meals == "Yes":
+                st.markdown("##### 🗓️ Declare meals")
+                country_options = newrate["Country"].dropna().unique().tolist()
 
-            editable_data = pd.DataFrame([{
-                "Country": block["country"],
-                "Airport": "",
-                "Period": f"{block['start'].strftime('%d %b %y %H:%M')} to {block['end'].strftime('%d %b %y %H:%M')}",
-                "Breakfast": "No",
-                "Lunch": "No",
-                "Dinner": "No"
-            } for block in travel_blocks])
+                editable_data = pd.DataFrame([{
+                    "Country": block["country"],
+                    "Airport": "",
+                    "Period": f"{block['start'].strftime('%d %b %y %H:%M')} to {block['end'].strftime('%d %b %y %H:%M')}",
+                    "Breakfast": "No",
+                    "Lunch": "No",
+                    "Dinner": "No"
+                } for block in travel_blocks])
 
-            edited_table = st.data_editor(
-                editable_data,
-                num_rows="dynamic",
-                column_config={
-                    "Country": st.column_config.SelectboxColumn("Country", options=country_options),
-                    "Breakfast": st.column_config.SelectboxColumn("Breakfast", options=["No", "Yes", "NA"]),
-                    "Lunch": st.column_config.SelectboxColumn("Lunch", options=["No", "Yes", "NA"]),
-                    "Dinner": st.column_config.SelectboxColumn("Dinner", options=["No", "Yes", "NA"]),
-                }
-            )
-        else:
-            st.info("I hereby declare that no full meals were provided throughout my trip. Meal breakdown will not be required.")
+                edited_table = st.data_editor(
+                    editable_data,
+                    hide_index=True,
+                    column_config={
+                        "Country": st.column_config.SelectboxColumn("Country", options=country_options),
+                        "Breakfast": st.column_config.SelectboxColumn("Breakfast", options=["No", "Yes", "NA"]),
+                        "Lunch": st.column_config.SelectboxColumn("Lunch", options=["No", "Yes", "NA"]),
+                        "Dinner": st.column_config.SelectboxColumn("Dinner", options=["No", "Yes", "NA"]),
+                    }
+                )
+            else:
+                st.info("I hereby declare that no full meals were provided throughout my trip. Meal breakdown will not be required.")
+
+        # Calculator
+        with st.container(border=True):
+            st.markdown("#### 💰 Step 3 - Allowance Calculator")
+
+            cutoff_date = datetime(2025, 3, 31)
+            calculation_rows = []
+            total_amount = 0.0
+
+            # Use edited_table only if full_meals == "Yes"
+            if full_meals == "Yes":
+                source_table = edited_table
+            else:
+                # Build fallback table from travel_blocks
+                source_table = pd.DataFrame([{
+                    "Country": block["country"],
+                    "Start": block["start"],
+                    "End": block["end"],
+                    "Breakfast": "NA",
+                    "Lunch": "NA",
+                    "Dinner": "NA"
+                } for block in travel_blocks])
+
+            for idx, row in source_table.iterrows():
+                country = row["Country"]
+                start = row["Start"] if full_meals == "No" else datetime.strptime(row["Period"].split(" to ")[0], "%d %b %y %H:%M")
+                end = row["End"] if full_meals == "No" else datetime.strptime(row["Period"].split(" to ")[1], "%d %b %y %H:%M")
+
+                # Determine rate source
+                rate_table = oldrate if start.date() <= cutoff_date.date() else newrate
+                rate_row = rate_table[rate_table["Country"] == country]
+                if rate_row.empty:
+                    st.warning(f"No rate found for {country}. Skipping row {idx+1}.")
+                    continue
+                daily_rate = rate_row.iloc[0]["Rates"]
+
+                # Duration
+                duration = end - start
+                hours = duration.total_seconds() / 3600
+
+                # Determine logic based on meal flags
+                if full_meals == "Yes":
+                    all_meals_provided = (
+                        row["Breakfast"] == "Yes" and
+                        row["Lunch"] == "Yes" and
+                        row["Dinner"] == "Yes"
+                    )
+                    if all_meals_provided:
+                        allowance_pct = 0.33 if hours >= 12 else 0.0
+                        logic_used = "Logic 3 (All meals provided)"
+                    else:
+                        allowance_pct = 1.0 if hours >= 12 else 0.5
+                        logic_used = "Logic 2 (Partial meals)"
+                else:
+                    allowance_pct = 1.0 if hours >= 12 else 0.5
+                    logic_used = "Logic 2 (No meals)"
+
+                amount = daily_rate * allowance_pct
+                total_amount += amount
+
+                calculation_rows.append({
+                    "Country": country,
+                    "Start": start.strftime("%d %b %y %H:%M"),
+                    "End": end.strftime("%d %b %y %H:%M"),
+                    "Hours": f"{hours:.1f}",
+                    "Rate Source": "Old" if rate_table is oldrate else "New",
+                    "Daily Rate": f"${daily_rate:.2f}",
+                    "Allowance %": f"{allowance_pct*100:.0f}%",
+                    "Logic Used": logic_used,
+                    "Amount": f"${amount:.2f}"
+                })
+
+            st.markdown(f"### 🧾 Total Claimable Amount: **${total_amount:,.2f}**")
+            st.dataframe(pd.DataFrame(calculation_rows), hide_index=True)
+
 
 
 
