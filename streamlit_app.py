@@ -196,6 +196,7 @@ if st.session_state.logged_in:
             blocks.append((current_start, end_dt))
             return blocks
 
+        # Step 1 - Flight Details
         with st.container(border=True):
         
             st.markdown("#### ✈️ Step 1 - Indicate your Travel Segments")
@@ -275,7 +276,6 @@ if st.session_state.logged_in:
                             except ValueError:
                                 st.error(f"❌ Invalid time format in Flight {i+1}. Please use hh:mm (e.g. 18:00).")
 
-
         # Generate travel blocks with country info
         travel_blocks = []
         for seg in segments:
@@ -287,7 +287,7 @@ if st.session_state.logged_in:
                     "country": seg.get("country", None)  # fallback if not set
                 })
         
-        # Editable table setup
+        # Step 2 - Meal declaration
         with st.container(border=True):
             
             st.markdown("#### 🍽️ Step 2 - Meals Declaration")
@@ -320,8 +320,9 @@ if st.session_state.logged_in:
             else:
                 st.info("I hereby declare that no full meals were provided throughout my trip. Meal breakdown will not be required.")
 
-        # Calculator
+        # Step 3 - Calculator
         with st.container(border=True):
+            
             st.markdown("#### 💰 Step 3 - Allowance Calculator")
 
             cutoff_date = datetime(2025, 3, 31)
@@ -368,13 +369,13 @@ if st.session_state.logged_in:
                     )
                     if all_meals_provided:
                         allowance_pct = 0.33 if hours >= 12 else 0.0
-                        logic_used = "Logic 3 (All meals provided)"
+                        # logic_used = "Logic 3 (All meals provided)"
                     else:
                         allowance_pct = 1.0 if hours >= 12 else 0.5
-                        logic_used = "Logic 2 (Partial meals)"
+                        # logic_used = "Logic 2 (Partial meals)"
                 else:
                     allowance_pct = 1.0 if hours >= 12 else 0.5
-                    logic_used = "Logic 2 (No meals)"
+                    # logic_used = "Logic 2 (No meals)"
 
                 amount = daily_rate * allowance_pct
                 total_amount += amount
@@ -383,18 +384,16 @@ if st.session_state.logged_in:
                     "Country": country,
                     "Start": start.strftime("%d %b %y %H:%M"),
                     "End": end.strftime("%d %b %y %H:%M"),
-                    "Hours": f"{hours:.1f}",
+                    "Hours": f"{hours:.0f}",
                     "Rate Source": "Old" if rate_table is oldrate else "New",
-                    "Daily Rate": f"${daily_rate:.2f}",
+                    "Daily Rate": f"${daily_rate:.0f}",
                     "Allowance %": f"{allowance_pct*100:.0f}%",
-                    "Logic Used": logic_used,
+                    # "Logic Used": logic_used,
                     "Amount": f"${amount:.2f}"
                 })
 
             st.markdown(f"### 🧾 Total Claimable Amount: **${total_amount:,.2f}**")
             st.dataframe(pd.DataFrame(calculation_rows), hide_index=True)
-
-
 
 
     elif st.session_state.active_tab == "funds":
