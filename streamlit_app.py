@@ -323,6 +323,24 @@ if st.session_state.logged_in:
         # Step 3 - Calculator
         with st.container(border=True):
             
+            # Count how many calendar month boundaries have passed since trip_start
+            from dateutil.relativedelta import relativedelta
+
+            def get_month_tier(block_start, trip_start):
+                month_1_end = trip_start + relativedelta(months=1) - timedelta(days=1)
+                month_2_end = trip_start + relativedelta(months=2) - timedelta(days=1)
+                month_3_end = trip_start + relativedelta(months=3) - timedelta(days=1)
+
+                if block_start <= month_1_end:
+                    return 1
+                elif block_start <= month_2_end:
+                    return 2
+                elif block_start <= month_3_end:
+                    return 3
+                else:
+                    return 4
+
+
             st.markdown("#### 💰 Step 3 - Allowance Calculator")
 
             cutoff_date = datetime(2025, 3, 31)
@@ -343,10 +361,15 @@ if st.session_state.logged_in:
                     "Dinner": "NA"
                 } for block in travel_blocks])
 
+            trip_start = min(seg["start"] for seg in segments)
+
+            month_tiers_used = set()
+
             for idx, row in source_table.iterrows():
                 country = row["Country"]
                 start = row["Start"] if full_meals == "No" else datetime.strptime(row["Period"].split(" to ")[0], "%d %b %y %H:%M")
                 end = row["End"] if full_meals == "No" else datetime.strptime(row["Period"].split(" to ")[1], "%d %b %y %H:%M")
+                hours = (end - start).total_seconds() / 3600
 
                 # Determine rate source
                 rate_table = oldrate if start.date() <= cutoff_date.date() else newrate
@@ -356,11 +379,18 @@ if st.session_state.logged_in:
                     continue
                 daily_rate = rate_row.iloc[0]["Rates"]
 
-                # Duration
-                duration = end - start
-                hours = duration.total_seconds() / 3600
+                # Determine month tier
+                month_tier = get_month_tier(start, trip_start)
+                if month_tier == 1:
+                    base_pct = 1.0
+                elif month_tier in [2, 3]:
+                    base_pct = 0.5
+                else:
+                    base_pct = 0.25
 
-                # Determine logic based on meal flags
+                month_tiers_used.add(month_tier)
+
+                # Meal logic
                 if full_meals == "Yes":
                     all_meals_provided = (
                         row["Breakfast"] == "Yes" and
@@ -368,19 +398,18 @@ if st.session_state.logged_in:
                         row["Dinner"] == "Yes"
                     )
                     if all_meals_provided:
-                        allowance_pct = 0.33 if hours >= 12 else 0.0
-                        # logic_used = "Logic 3 (All meals provided)"
+                        allowance_pct = base_pct * (0.33 if hours >= 12 else 0.0)
                     else:
-                        allowance_pct = 1.0 if hours >= 12 else 0.5
-                        # logic_used = "Logic 2 (Partial meals)"
+                        allowance_pct = base_pct * (1.0 if hours >= 12 else 0.5)
                 else:
-                    allowance_pct = 1.0 if hours >= 12 else 0.5
-                    # logic_used = "Logic 2 (No meals)"
+                    allowance_pct = base_pct * (1.0 if hours >= 12 else 0.5)
 
                 amount = daily_rate * allowance_pct
                 total_amount += amount
 
-                calculation_rows.append({
+                month_tiers_used.add(month_tier)
+
+                row_data = {
                     "Country": country,
                     "Start": start.strftime("%d %b %y %H:%M"),
                     "End": end.strftime("%d %b %y %H:%M"),
@@ -388,12 +417,21 @@ if st.session_state.logged_in:
                     "Rate Source": "Old" if rate_table is oldrate else "New",
                     "Daily Rate": f"${daily_rate:.0f}",
                     "Allowance %": f"{allowance_pct*100:.0f}%",
-                    # "Logic Used": logic_used,
                     "Amount": f"${amount:.2f}"
-                })
+                }
+
+                # Add Month Tier only if more than one tier has been seen so far
+                if len(month_tiers_used) > 1 or month_tier > 1:
+                    row_data["Month Tier"] = f"Month {month_tier}"
+
+                calculation_rows.append(row_data)
 
             st.markdown(f"### 🧾 Total Claimable Amount: **${total_amount:,.2f}**")
+            if any("Month Block" in row for row in calculation_rows):
+                st.markdown("##### 📆 Monthly Segmentation Applied")    
             st.dataframe(pd.DataFrame(calculation_rows), hide_index=True)
+
+
 
 
     elif st.session_state.active_tab == "funds":
