@@ -363,7 +363,7 @@ if st.session_state.logged_in:
 
             trip_start = min(seg["start"] for seg in segments)
 
-            month_tiers_used = set()
+            month_tiers_used = []
 
             for idx, row in source_table.iterrows():
                 country = row["Country"]
@@ -388,7 +388,7 @@ if st.session_state.logged_in:
                 else:
                     base_pct = 0.25
 
-                month_tiers_used.add(month_tier)
+                month_tiers_used.append(month_tier)
 
                 # Meal logic
                 if full_meals == "Yes":
@@ -406,9 +406,7 @@ if st.session_state.logged_in:
 
                 amount = daily_rate * allowance_pct
                 total_amount += amount
-
-                month_tiers_used.add(month_tier)
-
+                
                 row_data = {
                     "Country": country,
                     "Start": start.strftime("%d %b %y %H:%M"),
@@ -417,20 +415,24 @@ if st.session_state.logged_in:
                     "Rate Source": "Old" if rate_table is oldrate else "New",
                     "Daily Rate": f"${daily_rate:.0f}",
                     "Allowance %": f"{allowance_pct*100:.0f}%",
-                    "Amount": f"${amount:.2f}"
+                    "Amount": f"${amount:.2f}",
+                    "Month Tier": f"Month {month_tier}"
                 }
 
-                # Add Month Tier only if more than one tier has been seen so far
-                if len(month_tiers_used) > 1 or month_tier > 1:
-                    row_data["Month Tier"] = f"Month {month_tier}"
-
                 calculation_rows.append(row_data)
+            
+            avg_month_tier = sum(month_tiers_used) / len(month_tiers_used)
 
+            
             st.markdown(f"### 🧾 Total Claimable Amount: **${total_amount:,.2f}**")
             if any("Month Block" in row for row in calculation_rows):
                 st.markdown("##### 📆 Monthly Segmentation Applied")    
-            st.dataframe(pd.DataFrame(calculation_rows), hide_index=True)
-
+            if not avg_month_tier == 1:
+                st.dataframe(pd.DataFrame(calculation_rows), hide_index=True)
+            else:
+                df = pd.DataFrame(calculation_rows)
+                df = df.drop(columns=["Month Tier"])
+                st.dataframe(df, hide_index=True)
 
 
 
