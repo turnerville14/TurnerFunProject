@@ -389,7 +389,7 @@ if st.session_state.logged_in:
                     base_pct = 0.25
 
                 month_tiers_used.append(month_tier)
-
+                
                 # Meal logic
                 if full_meals == "Yes":
                     all_meals_provided = (
@@ -399,8 +399,10 @@ if st.session_state.logged_in:
                     )
                     if all_meals_provided:
                         allowance_pct = base_pct * (0.33 if hours >= 12 else 0.0)
+                        fullmeals = "Provided"
                     else:
                         allowance_pct = base_pct * (1.0 if hours >= 12 else 0.5)
+                        fullmeals = "Not Provided"
                 else:
                     allowance_pct = base_pct * (1.0 if hours >= 12 else 0.5)
 
@@ -414,25 +416,110 @@ if st.session_state.logged_in:
                     "Hours": f"{hours:.0f}",
                     "Rate Source": "Old" if rate_table is oldrate else "New",
                     "Daily Rate": f"${daily_rate:.0f}",
+                    "Full Meals": {fullmeals},
+                    "Step Down": f"Month {month_tier}",
                     "Allowance %": f"{allowance_pct*100:.0f}%",
-                    "Amount": f"${amount:.2f}",
-                    "Month Tier": f"Month {month_tier}"
+                    "Amount": f"${amount:.2f}"
                 }
 
                 calculation_rows.append(row_data)
             
             avg_month_tier = sum(month_tiers_used) / len(month_tiers_used)
 
-            
-            st.markdown(f"### 🧾 Total Claimable Amount: **${total_amount:,.2f}**")
+            with st.container(border=True):
+                st.markdown(f"##### 🧾 Total Claimable Amount: **${total_amount:,.2f}**")
             if any("Month Block" in row for row in calculation_rows):
                 st.markdown("##### 📆 Monthly Segmentation Applied")    
             if not avg_month_tier == 1:
                 st.dataframe(pd.DataFrame(calculation_rows), hide_index=True)
             else:
                 df = pd.DataFrame(calculation_rows)
-                df = df.drop(columns=["Month Tier"])
+                df = df.drop(columns=["Step Down"])
                 st.dataframe(df, hide_index=True)
+
+        # Step 4 - Print PDF
+        with st.container(border=True):
+            from reportlab.lib.pagesizes import A4, landscape
+            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+            from reportlab.lib import colors
+            from reportlab.lib.styles import getSampleStyleSheet
+            import tempfile
+
+            st.markdown("#### 📄 Step 4 - Print PDF")
+
+            styles = getSampleStyleSheet()
+            elements = []
+
+            # Step 1 - Travel Segments
+            elements.append(Paragraph("✈️ Step 1 - Travel Segments", styles['Heading2']))
+            travel_data = [["Country", "Start", "End"]] + [
+                [seg['country'], seg['start'].strftime('%d %b %y %H:%M'), seg['end'].strftime('%d %b %y %H:%M')]
+                for seg in segments
+            ]
+            travel_table = Table(travel_data)
+            travel_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ]))
+            elements.append(travel_table)
+            elements.append(Spacer(1, 12))
+
+            # Step 2 - Meals Declaration
+            elements.append(Paragraph("🍽️ Step 2 - Meals Declaration", styles['Heading2']))
+            if full_meals == "Yes":
+                meals_data = [["Country", "Airport", "Period", "Breakfast", "Lunch", "Dinner"]] + [
+                    [row['Country'], row.get('Airport', ''), row['Period'], row['Breakfast'], row['Lunch'], row['Dinner']]
+                    for _, row in edited_table.iterrows()
+                ]
+            else:
+                meals_data = [["No full meals declared"]]
+            meals_table = Table(meals_data)
+            meals_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ]))
+            elements.append(meals_table)
+            elements.append(Spacer(1, 12))
+
+            # Step 3 - Allowance Calculator
+            elements.append(Paragraph("💰 Step 3 - Allowance Calculator", styles['Heading2']))
+            allowance_data = [["Country", "Start", "End", "Hours", "Rate Source", "Daily Rate", "Full Meals", "Step Down", "Allowance %", "Amount"]] + [
+                [row['Country'], row['Start'], row['End'], row['Hours'], row['Rate Source'], row['Daily Rate'],
+                row['Full Meals'], row['Step Down'], row['Allowance %'], row['Amount']]
+                for row in calculation_rows
+            ]
+            allowance_table = Table(allowance_data)
+            allowance_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ]))
+            elements.append(allowance_table)
+            elements.append(Spacer(1, 12))
+
+            # Total Amount
+            elements.append(Paragraph(f"<b>Total Claimable Amount: ${total_amount:,.2f}</b>", styles['Heading3']))
+
+            # Generate PDF
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
+                doc = SimpleDocTemplate(tmpfile.name, pagesize=landscape(A4), rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
+                doc.build(elements)
+
+                with open(tmpfile.name, "rb") as f:
+                    st.download_button(
+                        label="📥 Download PDF",
+                        data=f.read(),
+                        file_name="Travel_Allowance_Claim.pdf",
+                        mime="application/pdf"
+                    )
+
+
+
 
 
 
