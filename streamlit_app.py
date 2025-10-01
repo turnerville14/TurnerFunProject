@@ -364,6 +364,7 @@ if st.session_state.logged_in:
             trip_start = min(seg["start"] for seg in segments)
 
             month_tiers_used = []
+            fullmeals = "Not Provided"
 
             for idx, row in source_table.iterrows():
                 country = row["Country"]
@@ -451,7 +452,7 @@ if st.session_state.logged_in:
             elements = []
 
             # Step 1 - Travel Segments
-            elements.append(Paragraph("✈️ Step 1 - Travel Segments", styles['Heading2']))
+            elements.append(Paragraph("Step 1 - Travel Segments", styles['Heading2']))
             travel_data = [["Country", "Start", "End"]] + [
                 [seg['country'], seg['start'].strftime('%d %b %y %H:%M'), seg['end'].strftime('%d %b %y %H:%M')]
                 for seg in segments
@@ -467,7 +468,7 @@ if st.session_state.logged_in:
             elements.append(Spacer(1, 12))
 
             # Step 2 - Meals Declaration
-            elements.append(Paragraph("🍽️ Step 2 - Meals Declaration", styles['Heading2']))
+            elements.append(Paragraph("Step 2 - Meals Declaration", styles['Heading2']))
             if full_meals == "Yes":
                 meals_data = [["Country", "Airport", "Period", "Breakfast", "Lunch", "Dinner"]] + [
                     [row['Country'], row.get('Airport', ''), row['Period'], row['Breakfast'], row['Lunch'], row['Dinner']]
@@ -486,7 +487,7 @@ if st.session_state.logged_in:
             elements.append(Spacer(1, 12))
 
             # Step 3 - Allowance Calculator
-            elements.append(Paragraph("💰 Step 3 - Allowance Calculator", styles['Heading2']))
+            elements.append(Paragraph("Step 3 - Allowance Calculator", styles['Heading2']))
             allowance_data = [["Country", "Start", "End", "Hours", "Rate Source", "Daily Rate", "Full Meals", "Step Down", "Allowance %", "Amount"]] + [
                 [row['Country'], row['Start'], row['End'], row['Hours'], row['Rate Source'], row['Daily Rate'],
                 row['Full Meals'], row['Step Down'], row['Allowance %'], row['Amount']]
