@@ -393,12 +393,15 @@ if st.session_state.logged_in:
                 
                 # Meal logic
                 if full_meals == "Yes":
-                    all_meals_provided = (
-                        row["Breakfast"] == "Yes" and
-                        row["Lunch"] == "Yes" and
-                        row["Dinner"] == "Yes"
-                    )
-                    if all_meals_provided:
+                    # Count how many meals are marked "Yes"
+                    yes_count = sum(row[meal] == "Yes" for meal in ["Breakfast", "Lunch", "Dinner"])
+                    # Count how many meals are marked "NA"
+                    na_count = sum(row[meal] == "NA" for meal in ["Breakfast", "Lunch", "Dinner"])
+
+                    # Full meals are considered provided if:
+                    # - All three are "Yes"
+                    # - Or if one or two are "Yes" and the rest are "NA"
+                    if yes_count + na_count == 3 and yes_count >= 1:
                         allowance_pct = base_pct * (0.33 if hours >= 12 else 0.0)
                         fullmeals = "Provided"
                     else:
@@ -406,6 +409,7 @@ if st.session_state.logged_in:
                         fullmeals = "Not Provided"
                 else:
                     allowance_pct = base_pct * (1.0 if hours >= 12 else 0.5)
+                    fullmeals = "Not Applicable"
 
                 amount = daily_rate * allowance_pct
                 total_amount += amount
@@ -457,7 +461,7 @@ if st.session_state.logged_in:
                 [seg['country'], seg['start'].strftime('%d %b %y %H:%M'), seg['end'].strftime('%d %b %y %H:%M')]
                 for seg in segments
             ]
-            travel_table = Table(travel_data)
+            travel_table = Table(travel_data, hAlign="LEFT")
             travel_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
@@ -476,7 +480,7 @@ if st.session_state.logged_in:
                 ]
             else:
                 meals_data = [["No full meals declared"]]
-            meals_table = Table(meals_data)
+            meals_table = Table(meals_data, hAlign="LEFT")
             meals_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
@@ -493,7 +497,7 @@ if st.session_state.logged_in:
                 row['Full Meals'], row['Step Down'], row['Allowance %'], row['Amount']]
                 for row in calculation_rows
             ]
-            allowance_table = Table(allowance_data)
+            allowance_table = Table(allowance_data, hAlign="LEFT")
             allowance_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
