@@ -222,11 +222,17 @@ if st.session_state.logged_in:
                     try:
                         start_dt = combine_datetime(eta_date, eta_time)
                         end_dt = combine_datetime(etd_date, etd_time)
-                        segments.append({
-                            "start": start_dt,
-                            "end": end_dt,
-                            "country": selected_country
-                        })
+                        
+                        
+                        if end_dt <= start_dt:
+                            st.error("❌ ETD must be after ETA. Please adjust the ETD Date/Time.")
+                            st.stop()
+                        else:
+                            segments.append({
+                                "start": start_dt,
+                                "end": end_dt,
+                                "country": selected_country
+                            })
                     except ValueError:
                         st.error(f"❌ Invalid time format. Please use hh:mm (e.g. 18:00).")
 
@@ -236,6 +242,8 @@ if st.session_state.logged_in:
                     with cols[0]:
                         flight_count = st.number_input("Number of flight segments", min_value=2, max_value=10, value=2)
 
+                    segments = []  # Ensure this is initialized before the loop
+
                     for i in range(flight_count):
                         with st.container(border=True):
                             st.markdown(f"###### {'Flight 1 Details' if i == 0 else f'Flight {i+1} or Transit Details'}")
@@ -243,13 +251,7 @@ if st.session_state.logged_in:
                             cols = st.columns([2, 2, 2, 2, 2])
                             selected_country = cols[0].selectbox("Country", options=country_options, key=f"country_single_{i}")
 
-                            # Default ETA Date for next flight = ETD Date of previous flight
-                            if i == 0:
-                                eta_date_default = datetime.today().date()
-                            else:
-                                eta_date_default = segments[i - 1]["end"].date()
-
-                            eta_date_default = datetime.today().date() if i == 0 else segments[i - 1]["end"].date()
+                            eta_date_default = datetime.today().date() if i == 0 else (segments[i - 1]["end"] + timedelta(days=1)).date()
                             eta_date = cols[1].date_input(f"ETA Date {i+1}", value=eta_date_default, key=f"eta_date_{i}")
                             eta_time = cols[2].text_input(
                                 f"ETA Time {i+1}", value="00:00",
@@ -258,7 +260,6 @@ if st.session_state.logged_in:
                             )
                             etd_date_default = eta_date + timedelta(days=1)
                             etd_date = cols[3].date_input(f"ETD Date {i+1}", value=etd_date_default, key=f"etd_date_{i}")
-
                             etd_time = cols[4].text_input(
                                 f"ETD Time {i+1}", value="00:00",
                                 help="Enter time in 24-hour format, e.g. 12:45",
@@ -267,12 +268,25 @@ if st.session_state.logged_in:
 
                             try:
                                 start_dt = combine_datetime(eta_date, eta_time)
-                                end_dt = combine_datetime(etd_date, etd_time)
-                                segments.append({
-                                    "start": start_dt,
-                                    "end": end_dt,
-                                    "country": selected_country
-                                })
+                                end_dt = combine_datetime(etd_date, etd_time) - timedelta(minutes=1)
+
+                                # Checker: Ensure current ETA is after previous ETD
+                                if i > 0 and start_dt <= segments[i - 1]["end"]:
+                                    st.error(
+                                        f"❌ ETA for Flight {i+1} must be after ETD of Flight {i}. "
+                                        f"Please adjust the ETA Date/Time."
+                                    )
+                                else:
+                                    if end_dt <= start_dt:
+                                        st.error("❌ ETD must be after ETA. Please adjust the ETD Date/Time.")
+                                        st.stop()
+                                    else:
+                                        segments.append({
+                                            "start": start_dt,
+                                            "end": end_dt,
+                                            "country": selected_country
+                                        })
+
                             except ValueError:
                                 st.error(f"❌ Invalid time format in Flight {i+1}. Please use hh:mm (e.g. 18:00).")
 
