@@ -4,6 +4,8 @@ from datetime import datetime, timedelta, time, date
 from itertools import product
 import re
 import matplotlib.pyplot as plt
+import math
+
 
 # --- Page Config ---
 st.set_page_config(page_title="JG Portal", layout="wide")
@@ -28,7 +30,7 @@ hide_streamlit_style = """
             </style>
             """
 
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+# st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 # --- Session State ---
 if "logged_in" not in st.session_state:
@@ -262,7 +264,7 @@ if st.session_state.logged_in:
                             st.markdown(f"###### {'Flight 1 Details' if i == 0 else f'Flight {i+1} or Transit Details'}")
 
                             cols = st.columns([2, 2, 2, 2, 2])
-                            selected_country = cols[0].selectbox("Country", options=country_options, key=f"country_single_{i}")
+                            selected_country = cols[0].selectbox(f"Country {i+1}", options=country_options, key=f"country_single_{i}")
 
                             eta_date_default = datetime.today().date() if i == 0 else (segments[i - 1]["end"] + timedelta(days=1)).date()
                             eta_date = cols[1].date_input(f"ETA Date {i+1}", value=eta_date_default, key=f"eta_date_{i}")
@@ -281,7 +283,8 @@ if st.session_state.logged_in:
 
                             try:
                                 start_dt = combine_datetime(eta_date, eta_time)
-                                end_dt = combine_datetime(etd_date, etd_time) - timedelta(minutes=1)
+                                end_dt = combine_datetime(etd_date, etd_time)
+                                # - timedelta(minutes=1)
 
                                 # Checker: Ensure current ETA is after previous ETD
                                 if i > 0 and start_dt <= segments[i - 1]["end"]:
@@ -290,18 +293,19 @@ if st.session_state.logged_in:
                                         f"Please adjust the ETA Date/Time."
                                     )
                                 else:
-                                    if end_dt <= start_dt:
-                                        st.error("❌ ETD must be after ETA. Please adjust the ETD Date/Time.")
-                                        st.stop()
-                                    else:
+                                    if start_dt < end_dt:
                                         segments.append({
                                             "start": start_dt,
                                             "end": end_dt,
                                             "country": selected_country
                                         })
+                                    else:
+                                        st.error("❌ ETD must be after ETA. Please adjust the ETD Date/Time.")
+                                        st.stop()
 
                             except ValueError:
                                 st.error(f"❌ Invalid time format in Flight {i+1}. Please use hh:mm (e.g. 18:00).")
+
 
         # Generate travel blocks with country info
         travel_blocks = []
@@ -367,7 +371,6 @@ if st.session_state.logged_in:
                 else:
                     return 4
 
-
             st.markdown("#### 💰 Step 3 - Allowance Calculator")
 
             cutoff_date = datetime(2025, 3, 31)
@@ -397,7 +400,7 @@ if st.session_state.logged_in:
                 country = row["Country"]
                 start = row["Start"] if full_meals == "No" else datetime.strptime(row["Period"].split(" to ")[0], "%d %b %y %H:%M")
                 end = row["End"] if full_meals == "No" else datetime.strptime(row["Period"].split(" to ")[1], "%d %b %y %H:%M")
-                hours = (end - start).total_seconds() / 3600
+                hours = math.floor((end - start).total_seconds() / 3600)
 
                 # Determine rate source
                 rate_table = oldrate if start.date() <= cutoff_date.date() else newrate
@@ -418,18 +421,24 @@ if st.session_state.logged_in:
 
                 month_tiers_used.append(month_tier)
                 
-                # Meal logic
-                if full_meals == "Yes":
-                    # Count how many meals are marked "Yes"
-                    yes_count = sum(row[meal] == "Yes" for meal in ["Breakfast", "Lunch", "Dinner"])
-                    # Count how many meals are marked "NA"
-                    na_count = sum(row[meal] == "NA" for meal in ["Breakfast", "Lunch", "Dinner"])
+                # Count how many meals are marked "Yes"
+                yes_count = sum(row[meal] == "Yes" for meal in ["Breakfast", "Lunch", "Dinner"])
+                # Count how many meals are marked "NA"
+                na_count = sum(row[meal] == "NA" for meal in ["Breakfast", "Lunch", "Dinner"])
 
+                # Meal logic
+                if hours < 1:
+                    allowance_pct = 0.0
+                    if yes_count + na_count == 3 and yes_count >= 1:
+                        fullmeals = "Provided"
+                    else:
+                        fullmeals = "Not Provided"
+                elif full_meals == "Yes":
                     # Full meals are considered provided if:
                     # - All three are "Yes"
                     # - Or if one or two are "Yes" and the rest are "NA"
                     if yes_count + na_count == 3 and yes_count >= 1:
-                        allowance_pct = base_pct * (0.33 if hours >= 12 else 0.0)
+                        allowance_pct = base_pct * 0.33
                         fullmeals = "Provided"
                     else:
                         allowance_pct = base_pct * (1.0 if hours >= 12 else 0.5)
@@ -549,8 +558,6 @@ if st.session_state.logged_in:
                         file_name="Travel_Allowance_Claim.pdf",
                         mime="application/pdf"
                     )
-
-
 
     elif st.session_state.active_tab == "funds":
         # --- Main App Content ---
