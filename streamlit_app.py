@@ -552,9 +552,6 @@ if st.session_state.logged_in:
 
 
 
-
-
-
     elif st.session_state.active_tab == "funds":
         # --- Main App Content ---
         st.markdown("<h3 style='text-align:center;'>💰 Funds Usage Tracker</h2>", unsafe_allow_html=True)
@@ -711,12 +708,14 @@ if st.session_state.logged_in:
         st.markdown("Enter digit options for each position using commas, spaces, or both. Example: `1 3`, `2,4,0`, or `1, 3 4`")
 
         # Input fields
-        col1, col2 = st.columns(2)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             first_input = st.text_input("1st Digit Options", value="1 3")
-            third_input = st.text_input("3rd Digit Options", value="2 4 0")
         with col2:
             second_input = st.text_input("2nd Digit Options", value="1 3")
+        with col3:
+            third_input = st.text_input("3rd Digit Options", value="2 4 0")
+        with col4:
             fourth_input = st.text_input("4th Digit Options", value="2 4 0")
 
         def parse_digits(input_str):
