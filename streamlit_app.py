@@ -5,7 +5,8 @@ from itertools import product
 import re
 import matplotlib.pyplot as plt
 import math
-
+import time
+import plotly.graph_objects as go
 
 # --- Page Config ---
 st.set_page_config(page_title="JG Portal", layout="wide")
@@ -172,6 +173,65 @@ with logincol[1]:
 
 # --- Post-login UI ---
 if st.session_state.logged_in:
+    topcols = st.columns([1,10,1])
+    with topcols[1]:
+        # --- Custom CSS for Grand Look ---
+        st.markdown("""
+            <style>
+            @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
+
+            .clock {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 25px;
+                text-align: center;
+                margin-top: 100px;
+                line-height: 1.6;
+                letter-spacing: 8px;
+            }
+
+            .date {
+                background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
+                background-size: 400% 100%;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                animation: hueShift 5s linear infinite;
+                filter: hue-rotate(0deg);
+            }
+
+            @keyframes hueShift {
+                100% { filter: hue-rotate(0deg); }
+                0% { filter: hue-rotate(360deg); }
+            }
+
+            .stApp {
+                background-color: #000000;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+        from streamlit_autorefresh import st_autorefresh
+
+        st_autorefresh(interval=1000, limit=None, key="clock_refresh")
+        
+        # --- Clock Display ---
+        clock_placeholder = st.empty()
+        now = datetime.now() + timedelta(hours=8)
+
+        # Format time, day, and date
+        current_time = now.strftime("%H:%M:%S")
+        current_day = now.strftime("%A")
+        current_date = now.strftime("%d %B %Y")
+        # Combine into one HTML block
+        clock_html = f"""
+            <div class='clock'>
+                <div class='date'>{current_date} ({current_day}) {current_time}</div>
+            </div>
+        """
+
+        clock_placeholder.markdown(clock_html, unsafe_allow_html=True)
+
+        st.write("")
+
+    
     cols = st.columns([1, 2, 2, 2, 2, 2, 1])
 
     with cols[1]:
@@ -820,4 +880,5 @@ if st.session_state.logged_in:
 
         st.subheader("🧠 Fund Dictionary")
         st.json(funds_dict)
+
 
