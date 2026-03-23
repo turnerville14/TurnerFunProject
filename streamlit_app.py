@@ -349,7 +349,7 @@ if st.session_state.logged_in:
             st.title("⚽ Soccer Scoreline Baccarat Trends")
             st.markdown("Enter scores separated by commas or spaces (e.g., `1-2, 6-0, 0-0`).")
 
-            default_input = "1-2, 6-0, 0-3, 0-7, 0-3, 0-2, 5-5, 3-2, 2-2, 3-1, 7-6, 4-5, 3-7"
+            default_input = "0-0, 2-0, 0-1, 2-1, 1-4, 0-1, 0-1, 2-2, 2-1, 1-3, 0-0, 0-1, 2-0, 0-1, 1-1, 0-0, 3-1, 0-0, 1-1, 2-2, 2-2, 2-1, 3-1, 3-0, 0-0, 1-2, 2-0, 0-3"
             user_input = st.text_area("Input Scores:", value=default_input, height=100)
             
             if user_input:
