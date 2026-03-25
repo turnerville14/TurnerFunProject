@@ -224,6 +224,9 @@ if st.session_state.logged_in:
         clock_html = f"""
             <div class='clock'>
                 <div class='date'>{current_date} ({current_day}) {current_time}</div>
+                <br>
+                <div>⚽ <span class='date' style="letter-spacing:25px;">SOCCER TRENDS</span></div>
+                <br>
             </div>
         """
 
@@ -374,7 +377,6 @@ if st.session_state.logged_in:
         # --- APP UI ---
         def main():
             local_css()
-            st.title("⚽ Soccer Trends")
 
             if selected_df is not None:
                 
