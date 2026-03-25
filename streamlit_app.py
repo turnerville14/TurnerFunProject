@@ -198,7 +198,7 @@ if st.session_state.logged_in:
 
         with col2:
             st.subheader(f"{selected_league} Main Road")
-            data = parse_scores(" ".join(edited_df['score'].astype(str)))
+            data = parse_scores(" ".join(edited_df['Score'].astype(str)))
             for key, label in [('HDA','Home/Draw/Away'),('OU','Over/Under 2.5'),('OE','Odd/Even'),('HC','Home Handicap (-2)')]:
                 values = [d[key] for d in data]
                 grid = get_big_road_grid(values)
