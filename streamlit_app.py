@@ -423,12 +423,13 @@ if st.session_state.logged_in:
             selected_df, selected_league = load_csv("https://www.football-data.co.uk/mmz4281/2526/SP1.csv"), "LaLiga"
         elif france_clicked:
             selected_df, selected_league = load_csv("https://www.football-data.co.uk/mmz4281/2526/F1.csv"), "France"
+        elif mls_clicked:
+            selected_df, selected_league = load_csv("https://www.football-data.co.uk/new/USA.csv", drop_first_two=True), "MLS"
         elif aussie_clicked:
             selected_df, selected_league = load_csv("https://www.football-data.co.uk/mmz4281/2526/A1.csv"), "Aussie"
         elif fifa_clicked:
             selected_df, selected_league = load_csv("https://www.football-data.co.uk/mmz4281/2526/WC.csv"), "Fifa"
-        elif mls_clicked:
-            selected_df, selected_league = load_csv("https://www.football-data.co.uk/new/USA.csv", drop_first_two=True), "MLS"
+        
 
         # --- APP UI ---
         def main():
