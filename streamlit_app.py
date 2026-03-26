@@ -410,9 +410,10 @@ if st.session_state.logged_in:
         with btn_cols[0]: epl_clicked = st.button("EPL")
         with btn_cols[1]: laliga_clicked = st.button("LaLiga")
         with btn_cols[2]: france_clicked = st.button("France")
-        with btn_cols[3]: aussie_clicked = st.button("Aussie")
-        with btn_cols[4]: fifa_clicked = st.button("Fifa")
-        with btn_cols[5]: mls_clicked = st.button("MLS")
+        with btn_cols[3]: mls_clicked = st.button("MLS")
+        # with btn_cols[4]: aussie_clicked = st.button("Aussie")
+        # with btn_cols[5]: fifa_clicked = st.button("Fifa")
+        
 
         selected_df, selected_league = None, None
 
