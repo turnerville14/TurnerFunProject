@@ -268,16 +268,16 @@ if st.session_state.logged_in:
             """, unsafe_allow_html=True)
 
         # --- LOGIC FUNCTIONS ---
-        # def load_csv(file_name):
-        #     if os.path.exists(file_name):
-        #         df = pd.read_csv(file_name)
-        #         if df.empty:
-        #             st.warning(f"{file_name} is blank. No trend required.")
-        #             return None
-        #         return df
-        #     else:
-        #         st.error(f"{file_name} not found in root folder.")
-        #         return None
+        def load_root_csv(file_name):
+            if os.path.exists(file_name):
+                df = pd.read_csv(file_name)
+                if df.empty:
+                    st.warning(f"{file_name} is blank. No trend required.")
+                    return None
+                return df
+            else:
+                st.error(f"{file_name} not found in root folder.")
+                return None
         
         def load_csv(url: str, drop_first_two: bool = False):
             try:
@@ -390,29 +390,14 @@ if st.session_state.logged_in:
             st.markdown(html, unsafe_allow_html=True)
 
         # Row 1: Buttons
-        # btn_cols = st.columns(4)
-        # with btn_cols[0]: epl_clicked = st.button("EPL")
-        # with btn_cols[1]: laliga_clicked = st.button("LaLiga")
-        # with btn_cols[2]: aussie_clicked = st.button("Aussie")
-        # with btn_cols[3]: fifa_clicked = st.button("Fifa")
-
-        # selected_df, selected_league = None, None
-        # if epl_clicked:
-        #     selected_df, selected_league = load_csv("EPL.csv"), "EPL"
-        # elif laliga_clicked:
-        #     selected_df, selected_league = load_csv("LaLiga.csv"), "LaLiga"
-        # elif aussie_clicked:
-        #     selected_df, selected_league = load_csv("Aussie.csv"), "Aussie"
-        # elif fifa_clicked:
-        #     selected_df, selected_league = load_csv("Fifa.csv"), "Fifa"
         
         btn_cols = st.columns(6)
         with btn_cols[0]: epl_clicked = st.button("EPL")
         with btn_cols[1]: laliga_clicked = st.button("LaLiga")
         with btn_cols[2]: france_clicked = st.button("France")
         with btn_cols[3]: mls_clicked = st.button("MLS")
-        # with btn_cols[4]: aussie_clicked = st.button("Aussie")
-        # with btn_cols[5]: fifa_clicked = st.button("Fifa")
+        with btn_cols[4]: aussie_clicked = st.button("Aussie")
+        with btn_cols[5]: fifa_clicked = st.button("Fifa")
         
 
         selected_df, selected_league = None, None
@@ -426,9 +411,9 @@ if st.session_state.logged_in:
         elif mls_clicked:
             selected_df, selected_league = load_csv("https://www.football-data.co.uk/new/USA.csv", drop_first_two=True), "MLS"
         elif aussie_clicked:
-            selected_df, selected_league = load_csv("https://www.football-data.co.uk/mmz4281/2526/A1.csv"), "Aussie"
+            selected_df, selected_league = load_root_csv("Aussie.csv"), "Aussie"
         elif fifa_clicked:
-            selected_df, selected_league = load_csv("https://www.football-data.co.uk/mmz4281/2526/WC.csv"), "Fifa"
+            selected_df, selected_league = load_root_csv("Fifa.csv"), "Fifa"
         
 
         # --- APP UI ---
