@@ -457,7 +457,7 @@ if st.session_state.logged_in:
                         ('HC', 'Home Handicap (-2)')
                     ]
                     with col0:
-                        st.subheader("Scoreline")
+                        st.subheader(f"{selected_league} Scoreline")
                         if selected_df is not None:
                             st.dataframe(selected_df, hide_index=True,height=45 * 35)
                         else:
