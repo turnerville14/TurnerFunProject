@@ -217,7 +217,8 @@ if st.session_state.logged_in:
         now = datetime.now() + timedelta(hours=8)
 
         # Format time, day, and date
-        current_time = now.strftime("%H:%M:%S")
+        # current_time = now.strftime("%H:%M:%S")
+        current_time = now.strftime("%H:%M")
         current_day = now.strftime("%A")
         current_date = now.strftime("%d %B %Y")
         # Combine into one HTML block
