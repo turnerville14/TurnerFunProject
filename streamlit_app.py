@@ -173,6 +173,7 @@ with logincol[1]:
 
 # --- Post-login UI ---
 if st.session_state.logged_in:
+    
     topcols = st.columns([1,10,1])
     with topcols[1]:
         # --- Custom CSS for Grand Look ---
@@ -392,19 +393,22 @@ if st.session_state.logged_in:
 
         # Row 1: Buttons
         
-        btn_cols = st.columns(6)
+        btn_cols = st.columns(7)
         with btn_cols[0]: epl_clicked = st.button("EPL")
         with btn_cols[1]: laliga_clicked = st.button("LaLiga")
         with btn_cols[2]: france_clicked = st.button("France")
         with btn_cols[3]: mls_clicked = st.button("MLS")
         with btn_cols[4]: aussie_clicked = st.button("Aussie")
         with btn_cols[5]: fifa_clicked = st.button("Fifa")
+        with btn_cols[6]: adhoc_clicked = st.button("Ad Hoc URL")
+
+        adhocurl = st.text_input("Enter your adhoc URL:")
         
 
         selected_df, selected_league = None, None
 
         if epl_clicked:
-            selected_df, selected_league = load_csv("https://www.football-data.co.uk/mmz4281/2526/E0.csv"), "EPL"
+            selected_df, selected_league = load_csv("https://www.football-data.co.uk/mmz4281/2526/E2.csv"), "EPL"
         elif laliga_clicked:
             selected_df, selected_league = load_csv("https://www.football-data.co.uk/mmz4281/2526/SP1.csv"), "LaLiga"
         elif france_clicked:
@@ -415,6 +419,8 @@ if st.session_state.logged_in:
             selected_df, selected_league = load_root_csv("Aussie.csv"), "Aussie"
         elif fifa_clicked:
             selected_df, selected_league = load_root_csv("Fifa.csv"), "Fifa"
+        elif adhoc_clicked:
+            selected_df, selected_league = load_csv(adhocurl), "Ad Hoc"
         
 
         # --- APP UI ---
