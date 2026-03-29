@@ -255,31 +255,20 @@ if st.session_state.logged_in:
             .res-H, .res-O, .res-Odd, .res-minus { background-color: #ff4b4b; } /* Red */
             .res-A, .res-U, .res-Even, .res-plus { background-color: #3133ff; } /* Blue */
             .res-D { background-color: #28a745; } /* Green */
-            # .grid-container {
-            #     display: grid;
-            #     grid-auto-flow: column;
-            #     grid-template-rows: repeat(6, 45px);
-            #     gap: 2px;
-            #     background-color: #f0f2f6;
-            #     padding: 10px;
-            #     border-radius: 5px;
-            #     overflow-x: auto;
-            #     margin-bottom: 20px;
-            # }
-                .grid-container {
-                    display: flex;              /* lay out columns side by side */
-                    align-items: flex-start;    /* align columns at the top */
-                    gap: 10px;                  /* spacing between columns */
-                    background-color: #f0f2f6;
-                    padding: 10px;
-                    border-radius: 5px;
-                    overflow-x: auto;
-                    margin-bottom: 20px;
-                }
-                .grid-column {
-                    display: flex;
-                    flex-direction: column;     /* stack cells vertically */
-                    gap: 2px;
+            .grid-container {
+                display: flex;              /* lay out columns side by side */
+                align-items: flex-start;    /* align columns at the top */
+                gap: 10px;                  /* spacing between columns */
+                background-color: #f0f2f6;
+                padding: 10px;
+                border-radius: 5px;
+                overflow-x: auto;
+                margin-bottom: 20px;
+            }
+            .grid-column {
+                display: flex;
+                flex-direction: column;     /* stack cells vertically */
+                gap: 2px;
                 }
             </style>
             """, unsafe_allow_html=True)
@@ -389,22 +378,6 @@ if st.session_state.logged_in:
             columns.append(current_col)
             return columns
 
-        # def render_road(grid, title):
-        #     st.subheader(title)
-        #     html = '<div class="grid-container">'
-        #     for col in grid:
-        #         # Each column in our 'grid' list is a list of results
-        #         for i in range(6):
-        #             if i < len(col):
-        #                 val = col[i]
-        #                 # Clean class name for CSS (replace + with 'plus' and - with 'minus')
-        #                 css_class = val.replace('+', 'plus').replace('-', 'minus')
-        #                 html += f'<div class="baccarat-cell res-{css_class}">{val}</div>'
-        #             else:
-        #                 # Empty cell to maintain 6-row height
-        #                 html += '<div style="width:40px; height:40px; margin:2px;"></div>'
-        #     html += '</div>'
-        #     st.markdown(html, unsafe_allow_html=True)
         def render_road(grid, title):
             st.subheader(title)
             html = '<div class="grid-container">'
@@ -420,33 +393,53 @@ if st.session_state.logged_in:
         # Row 1: Buttons
         
         btn_cols = st.columns(7)
-        with btn_cols[0]: epl_clicked = st.button("EPL")
-        with btn_cols[1]: laliga_clicked = st.button("LaLiga")
-        with btn_cols[2]: france_clicked = st.button("France")
-        with btn_cols[3]: mls_clicked = st.button("MLS")
-        with btn_cols[4]: aussie_clicked = st.button("Aussie")
-        with btn_cols[5]: fifa_clicked = st.button("Fifa")
+        with btn_cols[0]: epl_clicked = st.button("England EPL")
+        with btn_cols[1]: laliga_clicked = st.button("Spain LaLiga")
+        with btn_cols[2]: japan_clicked = st.button("Japan L1")
+        with btn_cols[3]: mls_clicked = st.button("USA MLS")
+        with btn_cols[4]: aussie_clicked = st.button("Aussie L1")
+        with btn_cols[5]: fifa_clicked = st.button("World Fifa")
         with btn_cols[6]: adhoc_clicked = st.button("Ad Hoc URL")
 
-        adhocurl = st.text_input("Enter your adhoc URL:")
-        
+        league_options = {
+            "English Championship": "https://www.football-data.co.uk/mmz4281/2526/E1.csv",
+            "English League 1": "https://www.football-data.co.uk/mmz4281/2526/E2.csv",
+            "English League 2": "https://www.football-data.co.uk/mmz4281/2526/E3.csv",
+            "Germany Bundesliga 1": "https://www.football-data.co.uk/mmz4281/2526/D1.csv",
+            "Germany Bundesliga 2": "https://www.football-data.co.uk/mmz4281/2526/D2.csv",
+            "Italy Serie A": "https://www.football-data.co.uk/mmz4281/2526/I1.csv",
+            "Italy Serie B": "https://www.football-data.co.uk/mmz4281/2526/I2.csv",
+            "Spain Segunda": "https://www.football-data.co.uk/mmz4281/2526/SP2.csv",
+            "France Le Championnat": "https://www.football-data.co.uk/mmz4281/2526/F1.csv",
+            "France Div 2": "https://www.football-data.co.uk/mmz4281/2526/F2.csv",
+            "Netherlands Eredivisie": "https://www.football-data.co.uk/mmz4281/2526/N1.csv",
+            "Portugal Liga 1": "https://www.football-data.co.uk/mmz4281/2526/P1.csv",
+            "Turkey Ligi 1": "https://www.football-data.co.uk/mmz4281/2526/L1.csv"
+            # ➡️ Add more leagues here as needed
+        }
+
+        selected_league_name = st.selectbox("Choose a league:", list(league_options.keys()))
+
+        if selected_league_name:
+            adhocurl = league_options[selected_league_name]
+
 
         selected_df, selected_league = None, None
 
         if epl_clicked:
             selected_df, selected_league = load_csv("https://www.football-data.co.uk/mmz4281/2526/E2.csv"), "EPL"
         elif laliga_clicked:
-            selected_df, selected_league = load_csv("https://www.football-data.co.uk/mmz4281/2526/SP1.csv"), "LaLiga"
-        elif france_clicked:
-            selected_df, selected_league = load_csv("https://www.football-data.co.uk/mmz4281/2526/F1.csv"), "France"
+            selected_df, selected_league = load_csv("https://www.football-data.co.uk/mmz4281/2526/SP1.csv"), "Spain LaLiga"
+        elif japan_clicked:
+            selected_df, selected_league = load_csv("https://www.football-data.co.uk/new/JPN.csv", drop_first_two=True), "Japan L1"
         elif mls_clicked:
-            selected_df, selected_league = load_csv("https://www.football-data.co.uk/new/USA.csv", drop_first_two=True), "MLS"
+            selected_df, selected_league = load_csv("https://www.football-data.co.uk/new/USA.csv", drop_first_two=True), "USA MLS"
         elif aussie_clicked:
-            selected_df, selected_league = load_root_csv("Aussie.csv"), "Aussie"
+            selected_df, selected_league = load_root_csv("Aussie.csv"), "Aussie L1"
         elif fifa_clicked:
             selected_df, selected_league = load_root_csv("Fifa.csv"), "Fifa"
         elif adhoc_clicked:
-            selected_df, selected_league = load_csv(adhocurl), "Ad Hoc"
+            selected_df, selected_league = load_csv(adhocurl), selected_league_name
         
 
         # --- APP UI ---
@@ -466,6 +459,7 @@ if st.session_state.logged_in:
                         st.warning("Please enter valid scores (e.g., 1-1).")
                         return
 
+                    st.subheader(f"{selected_league} Trends")
                     # --- Tabs ---
                     # tabs = st.tabs(["The Highway (Bead Plate)", "The Big Road"])
                     col0, col1, col2 = st.columns([1,2,2], border=True)
@@ -476,7 +470,7 @@ if st.session_state.logged_in:
                         ('HC', 'Home Handicap (-2)')
                     ]
                     with col0:
-                        st.subheader(f"{selected_league} Scoreline")
+                        st.subheader("Scoreline")
                         if selected_df is not None:
                             st.dataframe(selected_df, hide_index=True,height=45 * 35)
                         else:
