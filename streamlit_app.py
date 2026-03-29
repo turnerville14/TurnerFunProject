@@ -409,23 +409,20 @@ if st.session_state.logged_in:
             # ➡️ Add more leagues here as needed
         }
 
-        col1, col2 = st.columns(2)
+        col1, col2 = st.columns([2,3], border=True)
         with col1:
             selected_league_name = st.selectbox("Choose a league:", list(league_options.keys()))
-        with col2:
-            st.write("")
-            st.write("")
             adhoc_clicked = st.button("Load League")
+        with col2:
+            # Row 1: Buttons
+            st.write("Other Leagues")
 
-        # Row 1: Buttons
-        st.write("Other Leagues")
-
-        btn_cols = st.columns(4)
-        
-        with btn_cols[0]: japan_clicked = st.button("Japan L1")
-        with btn_cols[1]: mls_clicked = st.button("USA MLS")
-        with btn_cols[2]: aussie_clicked = st.button("Aussie L1")
-        with btn_cols[3]: fifa_clicked = st.button("World Fifa")
+            btn_cols = st.columns(4)
+            
+            with btn_cols[0]: japan_clicked = st.button("Japan L1")
+            with btn_cols[1]: mls_clicked = st.button("USA MLS")
+            with btn_cols[2]: aussie_clicked = st.button("Aussie L1")
+            with btn_cols[3]: fifa_clicked = st.button("World Fifa")
 
 
         if selected_league_name:
