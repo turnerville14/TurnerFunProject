@@ -255,17 +255,32 @@ if st.session_state.logged_in:
             .res-H, .res-O, .res-Odd, .res-minus { background-color: #ff4b4b; } /* Red */
             .res-A, .res-U, .res-Even, .res-plus { background-color: #3133ff; } /* Blue */
             .res-D { background-color: #28a745; } /* Green */
-            .grid-container {
-                display: grid;
-                grid-auto-flow: column;
-                grid-template-rows: repeat(6, 45px);
-                gap: 2px;
-                background-color: #f0f2f6;
-                padding: 10px;
-                border-radius: 5px;
-                overflow-x: auto;
-                margin-bottom: 20px;
-            }
+            # .grid-container {
+            #     display: grid;
+            #     grid-auto-flow: column;
+            #     grid-template-rows: repeat(6, 45px);
+            #     gap: 2px;
+            #     background-color: #f0f2f6;
+            #     padding: 10px;
+            #     border-radius: 5px;
+            #     overflow-x: auto;
+            #     margin-bottom: 20px;
+            # }
+                .grid-container {
+                    display: flex;              /* lay out columns side by side */
+                    align-items: flex-start;    /* align columns at the top */
+                    gap: 10px;                  /* spacing between columns */
+                    background-color: #f0f2f6;
+                    padding: 10px;
+                    border-radius: 5px;
+                    overflow-x: auto;
+                    margin-bottom: 20px;
+                }
+                .grid-column {
+                    display: flex;
+                    flex-direction: column;     /* stack cells vertically */
+                    gap: 2px;
+                }
             </style>
             """, unsafe_allow_html=True)
 
@@ -374,21 +389,32 @@ if st.session_state.logged_in:
             columns.append(current_col)
             return columns
 
+        # def render_road(grid, title):
+        #     st.subheader(title)
+        #     html = '<div class="grid-container">'
+        #     for col in grid:
+        #         # Each column in our 'grid' list is a list of results
+        #         for i in range(6):
+        #             if i < len(col):
+        #                 val = col[i]
+        #                 # Clean class name for CSS (replace + with 'plus' and - with 'minus')
+        #                 css_class = val.replace('+', 'plus').replace('-', 'minus')
+        #                 html += f'<div class="baccarat-cell res-{css_class}">{val}</div>'
+        #             else:
+        #                 # Empty cell to maintain 6-row height
+        #                 html += '<div style="width:40px; height:40px; margin:2px;"></div>'
+        #     html += '</div>'
+        #     st.markdown(html, unsafe_allow_html=True)
         def render_road(grid, title):
             st.subheader(title)
             html = '<div class="grid-container">'
             for col in grid:
-                # Each column in our 'grid' list is a list of results
-                for i in range(6):
-                    if i < len(col):
-                        val = col[i]
-                        # Clean class name for CSS (replace + with 'plus' and - with 'minus')
-                        css_class = val.replace('+', 'plus').replace('-', 'minus')
-                        html += f'<div class="baccarat-cell res-{css_class}">{val}</div>'
-                    else:
-                        # Empty cell to maintain 6-row height
-                        html += '<div style="width:40px; height:40px; margin:2px;"></div>'
-            html += '</div>'
+                html += '<div class="grid-column">'
+                for val in col:
+                    css_class = val.replace('+', 'plus').replace('-', 'minus')
+                    html += f'<div class="baccarat-cell res-{css_class}">{val}</div>'
+                html += '</div>'  # close column
+            html += '</div>'      # close container
             st.markdown(html, unsafe_allow_html=True)
 
         # Row 1: Buttons
