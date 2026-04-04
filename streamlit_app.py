@@ -174,7 +174,7 @@ with logincol[1]:
 # --- Post-login UI ---
 if st.session_state.logged_in:
     
-    topcols = st.columns([1,10,1])
+    topcols = st.columns([1,15,1])
     with topcols[1]:
         # --- Custom CSS for Grand Look ---
         st.markdown("""
