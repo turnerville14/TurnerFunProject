@@ -463,7 +463,7 @@ if st.session_state.logged_in:
                 st.subheader(f"{selected_league} Trends")
                 # --- Tabs ---
                 # tabs = st.tabs(["The Highway (Bead Plate)", "The Big Road"])
-                col0, col1, col2 = st.columns([2,2,5], border=True)
+                col0, col1, col2 = st.columns([2,3,5], border=True)
                 categories = [
                     ('HDA', 'Home / Draw / Away'),
                     ('OU', 'Over / Under 2.5'),
