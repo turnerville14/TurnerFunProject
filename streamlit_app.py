@@ -436,10 +436,13 @@ if st.session_state.logged_in:
             adhoc_clicked = st.button("Load League")
         
         with st.expander("Other leagues", expanded=False):
-            japan_clicked = st.button("Japan L1")
-            mls_clicked = st.button("USA MLS")
-            aussie_clicked = st.button("Aussie L1")
-            fifa_clicked = st.button("FA Cup")
+            col1,col2 = st.columns([1,1])
+            with col1:
+                japan_clicked = st.button("Japan L1")
+                mls_clicked = st.button("USA MLS")
+            with col2:
+                aussie_clicked = st.button("Aussie L1")
+                fifa_clicked = st.button("FA Cup")
 
         if selected_league_name:
             adhocurl = league_options[selected_league_name]
