@@ -425,39 +425,40 @@ if st.session_state.logged_in:
         "Turkey Ligi 1": "https://www.football-data.co.uk/mmz4281/2526/L1.csv"
     }
 
-    col1, col2, col3 = st.columns([1,1,3], border=True)
-    with col1:
-        selected_league_name = st.selectbox("Choose a league:", list(league_options.keys()))
-        adhoc_clicked = st.button("Load League")
+    colmain1,colmain2 = st.columns([1,4], border=True)
+    with colmain1:
+        col1,col2 = st.columns([1,1])
+        with col1: 
+            selected_league_name = st.selectbox("Choose a league:", list(league_options.keys()))
+        with col2: 
+            st.markdown("")
+            st.markdown("")
+            adhoc_clicked = st.button("Load League")
         
-    with col2:
-        st.write("Other Leagues")
-        japan_clicked = st.button("Japan L1")
-        mls_clicked = st.button("USA MLS")
-        aussie_clicked = st.button("Aussie L1")
-        fifa_clicked = st.button("FA Cup")
+        with st.expander("Other leagues", expanded=False):
+            japan_clicked = st.button("Japan L1")
+            mls_clicked = st.button("USA MLS")
+            aussie_clicked = st.button("Aussie L1")
+            fifa_clicked = st.button("FA Cup")
 
-    if selected_league_name:
-        adhocurl = league_options[selected_league_name]
-
-    # --- Update session state when buttons are clicked ---
-    if japan_clicked:
-        st.session_state.selected_df = load_csv("https://www.football-data.co.uk/new/JPN.csv", drop_first_two=True)
-        st.session_state.selected_league = "Japan L1"
-    elif mls_clicked:
-        st.session_state.selected_df = load_csv("https://www.football-data.co.uk/new/USA.csv", drop_first_two=True)
-        st.session_state.selected_league = "USA MLS"
-    elif aussie_clicked:
-        st.session_state.selected_df = load_root_csv("Aussie.csv")
-        st.session_state.selected_league = "Aussie L1"
-    elif fifa_clicked:
-        st.session_state.selected_df = load_root_csv("Fifa.csv")
-        st.session_state.selected_league = "Fifa"
-    elif adhoc_clicked:
-        st.session_state.selected_df = load_csv(adhocurl)
-        st.session_state.selected_league = selected_league_name
-
-    with col3:
+        if selected_league_name:
+            adhocurl = league_options[selected_league_name]
+        if japan_clicked:
+            st.session_state.selected_df = load_csv("https://www.football-data.co.uk/new/JPN.csv", drop_first_two=True)
+            st.session_state.selected_league = "Japan L1"
+        elif mls_clicked:
+            st.session_state.selected_df = load_csv("https://www.football-data.co.uk/new/USA.csv", drop_first_two=True)
+            st.session_state.selected_league = "USA MLS"
+        elif aussie_clicked:
+            st.session_state.selected_df = load_root_csv("Aussie.csv")
+            st.session_state.selected_league = "Aussie L1"
+        elif fifa_clicked:
+            st.session_state.selected_df = load_root_csv("Fifa.csv")
+            st.session_state.selected_league = "Fifa"
+        elif adhoc_clicked:
+            st.session_state.selected_df = load_csv(adhocurl)
+            st.session_state.selected_league = selected_league_name
+    with colmain2:
         # Always work from session_state
         try:
             reloaded_df = st.session_state.selected_df.reset_index(drop=True)
@@ -465,9 +466,12 @@ if st.session_state.logged_in:
             st.stop()
 
         # Editable table first
-        st.markdown("Editable Table")
-        edited_df = st.data_editor(reloaded_df, num_rows="dynamic", height=45 * 35)
-        st.session_state.selected_df = edited_df
+        with st.expander(f"Editable Table - {st.session_state.selected_league}", expanded=False):
+            edited_df = st.data_editor(reloaded_df, num_rows="dynamic", height=45 * 35)
+            st.session_state.selected_df = edited_df
+
+
+        
 
     # --- APP UI ---
     def main():
@@ -484,35 +488,41 @@ if st.session_state.logged_in:
                 if not data:
                     st.warning("Please enter valid scores (e.g., 1-1).")
                     return
+                st.markdown(f"""
+                    <style>
+                    .custom-header {{
+                        background-color: #2b2b2b;   /* dark grey background */
+                        color: white;                /* white font */
+                        border: 2px solid #444;      /* subtle dark border */
+                        border-radius: 8px;          /* rounded corners */
+                        padding: 10px 15px;          /* spacing inside */
+                        font-size: 1.8rem;           /* similar to subheader */
+                        font-weight: 600;            /* bold */
+                        # text-align: center;          /* center the text */
+                    }}
+                    .custom-divider {{
+                        color: #666;                 /* lighter grey divider */
+                        margin: 0 12px;              /* spacing around divider */
+                    }}
+                    </style>
 
-                st.subheader(f"{st.session_state.selected_league} Trends")
-                # col1, col2 = st.columns([3,5], border=True)
+                    <div class="custom-header">
+                        {st.session_state.selected_league} Trends
+                        <span class="custom-divider">│</span>
+                        Highway vs Big Road Trends
+                        <span class="custom-divider">│</span>
+                        Total Games: {len(data)}
+                    </div><br>
+                """, unsafe_allow_html=True)
+
+
                 categories = [
                     ('HDA', 'Home / Draw / Away'),
                     ('OU', 'Over / Under 2.5'),
                     ('OU2', 'Over / Under 3.5'),
                     ('OE', 'Odd / Even'),
-                    ('HC', 'Home Handicap (-2)')
+                    ('HC', 'Home Handicap (-1.5)')
                 ]
-
-                # with col1:
-                #     st.subheader("The Highway Trend")
-                #     for key, label in categories:
-                #         values = [d[key] for d in data]
-                #         grid = get_highway_grid(values)
-                #         render_road(grid, label)
-
-                # with col2:
-                #     st.subheader("The Big Road Trend")
-                #     for key, label in categories:
-                #         values = [d[key] for d in data]
-                #         grid = get_big_road_grid(values)
-                #         render_road(grid, label)
-                
-                
-                # Show total games count
-                st.markdown("### Highway vs Big Road Trends")
-                st.markdown(f"### **Total games: {len(data)}**")
 
                 # Now loop through categories
                 for key, label in categories:
