@@ -475,7 +475,7 @@ if st.session_state.logged_in:
                     return
 
                 st.subheader(f"{st.session_state.selected_league} Trends")
-                col1, col2 = st.columns([3,5], border=True)
+                # col1, col2 = st.columns([3,5], border=True)
                 categories = [
                     ('HDA', 'Home / Draw / Away'),
                     ('OU', 'Over / Under 2.5'),
@@ -484,19 +484,41 @@ if st.session_state.logged_in:
                     ('HC', 'Home Handicap (-2)')
                 ]
 
-                with col1:
-                    st.subheader("The Highway Trend")
-                    for key, label in categories:
-                        values = [d[key] for d in data]
-                        grid = get_highway_grid(values)
-                        render_road(grid, label)
+                # with col1:
+                #     st.subheader("The Highway Trend")
+                #     for key, label in categories:
+                #         values = [d[key] for d in data]
+                #         grid = get_highway_grid(values)
+                #         render_road(grid, label)
 
-                with col2:
-                    st.subheader("The Big Road Trend")
-                    for key, label in categories:
-                        values = [d[key] for d in data]
-                        grid = get_big_road_grid(values)
-                        render_road(grid, label)
+                # with col2:
+                #     st.subheader("The Big Road Trend")
+                #     for key, label in categories:
+                #         values = [d[key] for d in data]
+                #         grid = get_big_road_grid(values)
+                #         render_road(grid, label)
+                
+                
+                # Show total games count
+                st.markdown("### Highway vs Big Road Trends")
+                st.markdown(f"### **Total games: {len(data)-1}**")
+
+                # Now loop through categories
+                for key, label in categories:
+                    
+                    values = [d[key] for d in data]
+                    highway_grid = get_highway_grid(values)
+                    bigroad_grid = get_big_road_grid(values)
+
+                    col1, col2 = st.columns([1,2], border=True)
+                    with col1:
+                        st.markdown(f"### **{label}** - Highway")
+                        render_road(highway_grid, "")
+                    with col2:
+                        st.markdown(f"### **{label}** - Main Road")
+                        render_road(bigroad_grid, "")
+
+
             else:
                 st.warning("No 'Score' column found in table.")
         else:
