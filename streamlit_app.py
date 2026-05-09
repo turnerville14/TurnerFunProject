@@ -21,6 +21,29 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+    <style>
+    /* Remove top padding/margin from main container */
+    .block-container {
+        padding-top: 0rem !important;
+        margin-top: 0rem !important;
+    }
+
+    /* Remove extra spacing from the app root */
+    .stApp {
+        margin-top: 0rem !important;
+        padding-top: 0rem !important;
+    }
+
+    /* Hide the empty header space completely */
+    header, .css-18ni7ap, .css-1avcm0n {
+        height: 0px !important;
+        min-height: 0px !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
 hide_streamlit_style = """
             <style>
                 /* Hide the Streamlit header and menu */
@@ -29,6 +52,8 @@ hide_streamlit_style = """
                 .streamlit-footer {display: none;}
                 /* Hide your specific div class, replace class name with the one you identified */
                 .st-emotion-cache-uf99v8 {display: none;}
+            
+            
             </style>
             """
 
@@ -151,21 +176,6 @@ with logincol[1]:
                 st.write ("")
                 st.write ("")
                 st.success("Access Granted ✅")
-                st.markdown("""
-                    <div style="
-                        border: 2px solid #888;
-                        border-radius: 8px;
-                        padding: 0.75rem 1rem;
-                        background-color: #1e1e1e;
-                        color: white;
-                        font-style: italic;
-                        font-weight: bold;
-                        #text-align: center;
-                        margin-bottom: 1rem;
-                    ">
-                        Click any of the buttons below
-                    </div>
-                """, unsafe_allow_html=True)
             else:
                 st.write ("")
                 st.write ("")
@@ -174,8 +184,6 @@ with logincol[1]:
 # --- Post-login UI ---
 if st.session_state.logged_in:
     
-    # topcols = st.columns([1,15,1])
-    # with topcols[1]:
     # --- Custom CSS for Grand Look ---
     st.markdown("""
         <style>
@@ -185,9 +193,9 @@ if st.session_state.logged_in:
             font-family: 'Orbitron', sans-serif;
             font-size: 25px;
             text-align: center;
-            margin-top: 100px;
-            line-height: 1.6;
-            letter-spacing: 8px;
+            # margin-top: 100px;
+            # line-height: 1.6;
+            letter-spacing: 15px;
         }
 
         .date {
@@ -209,6 +217,7 @@ if st.session_state.logged_in:
         }
         </style>
     """, unsafe_allow_html=True)
+    
     from streamlit_autorefresh import st_autorefresh
 
     # st_autorefresh(interval=1000, limit=None, key="clock_refresh")
@@ -234,7 +243,7 @@ if st.session_state.logged_in:
 
     clock_placeholder.markdown(clock_html, unsafe_allow_html=True)
 
-    st.write("")
+    # st.write("")
 
     def local_css():
         st.markdown("""
@@ -315,7 +324,6 @@ if st.session_state.logged_in:
         except Exception as e:
             st.error(f"Error loading CSV: {e}")
             return None
-
 
     def parse_scores(input_str):
         # Regex to find patterns like 1-2, 10-2, etc.
@@ -451,10 +459,13 @@ if st.session_state.logged_in:
 
     with col3:
         # Always work from session_state
-        reloaded_df = st.session_state.selected_df.reset_index(drop=True)
+        try:
+            reloaded_df = st.session_state.selected_df.reset_index(drop=True)
+        except Exception as e:
+            st.stop()
 
         # Editable table first
-        st.subheader("Editable Table")
+        st.markdown("Editable Table")
         edited_df = st.data_editor(reloaded_df, num_rows="dynamic", height=45 * 35)
         st.session_state.selected_df = edited_df
 
@@ -501,7 +512,7 @@ if st.session_state.logged_in:
                 
                 # Show total games count
                 st.markdown("### Highway vs Big Road Trends")
-                st.markdown(f"### **Total games: {len(data)-1}**")
+                st.markdown(f"### **Total games: {len(data)}**")
 
                 # Now loop through categories
                 for key, label in categories:
@@ -527,114 +538,3 @@ if st.session_state.logged_in:
 
     if __name__ == "__main__":
         main()
-
-
-    # league_options = {
-    #     "England EPL": "https://www.football-data.co.uk/mmz4281/2526/E0.csv",
-    #     "England Championship": "https://www.football-data.co.uk/mmz4281/2526/E1.csv",
-    #     "England League 1": "https://www.football-data.co.uk/mmz4281/2526/E2.csv",
-    #     "England League 2": "https://www.football-data.co.uk/mmz4281/2526/E3.csv",
-    #     "Germany Bundesliga 1": "https://www.football-data.co.uk/mmz4281/2526/D1.csv",
-    #     "Germany Bundesliga 2": "https://www.football-data.co.uk/mmz4281/2526/D2.csv",
-    #     "Italy Serie A": "https://www.football-data.co.uk/mmz4281/2526/I1.csv",
-    #     "Italy Serie B": "https://www.football-data.co.uk/mmz4281/2526/I2.csv",
-    #     "Spain Laliga": "https://www.football-data.co.uk/mmz4281/2526/SP1.csv",
-    #     "Spain Segunda": "https://www.football-data.co.uk/mmz4281/2526/SP2.csv",
-    #     "France Le Championnat": "https://www.football-data.co.uk/mmz4281/2526/F1.csv",
-    #     "France Div 2": "https://www.football-data.co.uk/mmz4281/2526/F2.csv",
-    #     "Netherlands Eredivisie": "https://www.football-data.co.uk/mmz4281/2526/N1.csv",
-    #     "Portugal Liga 1": "https://www.football-data.co.uk/mmz4281/2526/P1.csv",
-    #     "Turkey Ligi 1": "https://www.football-data.co.uk/mmz4281/2526/L1.csv"
-    #     # ➡️ Add more leagues here as needed
-    # }
-
-    # col1, col2 = st.columns([2,3], border=True)
-    # with col1:
-    #     selected_league_name = st.selectbox("Choose a league:", list(league_options.keys()))
-    #     adhoc_clicked = st.button("Load League")
-    # with col2:
-    #     # Row 1: Buttons
-    #     st.write("Other Leagues")
-
-    #     btn_cols = st.columns(4)
-        
-    #     with btn_cols[0]: japan_clicked = st.button("Japan L1")
-    #     with btn_cols[1]: mls_clicked = st.button("USA MLS")
-    #     with btn_cols[2]: aussie_clicked = st.button("Aussie L1")
-    #     with btn_cols[3]: fifa_clicked = st.button("World Fifa")
-
-
-    # if selected_league_name:
-    #     adhocurl = league_options[selected_league_name]
-
-
-    # selected_df, selected_league = None, None
-
-    # if japan_clicked:
-    #     selected_df, selected_league = load_csv("https://www.football-data.co.uk/new/JPN.csv", drop_first_two=True), "Japan L1"
-    # elif mls_clicked:
-    #     selected_df, selected_league = load_csv("https://www.football-data.co.uk/new/USA.csv", drop_first_two=True), "USA MLS"
-    # elif aussie_clicked:
-    #     selected_df, selected_league = load_root_csv("Aussie.csv"), "Aussie L1"
-    # elif fifa_clicked:
-    #     selected_df, selected_league = load_root_csv("Fifa.csv"), "Fifa"
-    # elif adhoc_clicked:
-    #     selected_df, selected_league = load_csv(adhocurl), selected_league_name
-    
-
-    # # --- APP UI ---
-    # def main():
-    #     local_css()
-
-    #     if selected_df is not None:
-            
-    #         # ✅ Reload the saved CSV
-    #         reloaded_df = selected_df
-
-    #         if reloaded_df is not None and "Score" in reloaded_df.columns:
-    #             scores_str = "\n".join(reloaded_df["Score"].astype(str).tolist())
-    #             data = parse_scores(scores_str)
-
-    #             if not data:
-    #                 st.warning("Please enter valid scores (e.g., 1-1).")
-    #                 return
-
-    #             st.subheader(f"{selected_league} Trends")
-    #             # --- Tabs ---
-    #             # tabs = st.tabs(["The Highway (Bead Plate)", "The Big Road"])
-    #             col0, col1, col2 = st.columns([2,3,5], border=True)
-    #             categories = [
-    #                 ('HDA', 'Home / Draw / Away'),
-    #                 ('OU', 'Over / Under 2.5'),
-    #                 ('OE', 'Odd / Even'),
-    #                 ('HC', 'Home Handicap (-2)')
-    #             ]
-    #             with col0:
-    #                 st.subheader("Scoreline")
-    #                 if selected_df is not None:
-    #                     st.dataframe(selected_df, hide_index=True,height=45 * 35)
-    #                 else:
-    #                     st.info("Load a league to see index values.")
-
-    #             with col1:
-    #                 st.subheader("The Highway Trend")
-    #                 for key, label in categories:
-    #                     values = [d[key] for d in data]
-    #                     grid = get_highway_grid(values)
-    #                     render_road(grid, label)
-
-    #             with col2:
-    #                 st.subheader("The Big Road Trend")
-    #                 for key, label in categories:
-    #                     values = [d[key] for d in data]
-    #                     grid = get_big_road_grid(values)
-    #                     render_road(grid, label)
-    #         else:
-    #             st.warning("No 'Score' column found in table.")
-    #     else:
-    #         st.info("Please load a league to begin.")
-
-
-
-    # if __name__ == "__main__":
-    #     main()
