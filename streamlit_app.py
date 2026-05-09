@@ -331,7 +331,7 @@ if st.session_state.logged_in:
             else: hda = 'D'
             
             # 2. Over/Under 2.5
-            ou = 'O' if total > 2.5 else 'U'
+            ou = 'O' if total > 3.5 else 'U'
             
             # 3. Odd/Even
             oe = 'Odd' if total % 2 != 0 else 'Even'
@@ -475,7 +475,7 @@ if st.session_state.logged_in:
                 col1, col2 = st.columns([3,5], border=True)
                 categories = [
                     ('HDA', 'Home / Draw / Away'),
-                    ('OU', 'Over / Under 2.5'),
+                    ('OU', 'Over / Under 3.5'),
                     ('OE', 'Odd / Even'),
                     ('HC', 'Home Handicap (-2)')
                 ]
