@@ -333,6 +333,9 @@ if st.session_state.logged_in:
             # 2. Over/Under 2.5
             ou = 'O' if total > 2.5 else 'U'
             
+            # 2.1 Over/Under 3.5
+            ou2 = 'O' if total > 3.5 else 'U'
+
             # 3. Odd/Even
             oe = 'Odd' if total % 2 != 0 else 'Even'
             
@@ -340,7 +343,7 @@ if st.session_state.logged_in:
             # Logic: Home wins by 2 or more = "-", else "+"
             hc = '-' if (h - a) >= 2 else '+'
             
-            data.append({'score': f'{h}-{a}', 'HDA': hda, 'OU': ou, 'OE': oe, 'HC': hc})
+            data.append({'score': f'{h}-{a}', 'HDA': hda, 'OU': ou, 'OU2': ou2, 'OE': oe, 'HC': hc})
         return data
 
     def get_highway_grid(results, rows=6):
@@ -424,7 +427,7 @@ if st.session_state.logged_in:
         japan_clicked = st.button("Japan L1")
         mls_clicked = st.button("USA MLS")
         aussie_clicked = st.button("Aussie L1")
-        fifa_clicked = st.button("World Fifa")
+        fifa_clicked = st.button("FA Cup")
 
     if selected_league_name:
         adhocurl = league_options[selected_league_name]
@@ -476,6 +479,7 @@ if st.session_state.logged_in:
                 categories = [
                     ('HDA', 'Home / Draw / Away'),
                     ('OU', 'Over / Under 2.5'),
+                    ('OU2', 'Over / Under 3.5'),
                     ('OE', 'Odd / Even'),
                     ('HC', 'Home Handicap (-2)')
                 ]
