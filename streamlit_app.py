@@ -425,57 +425,59 @@ if st.session_state.logged_in:
         "Turkey Ligi 1": "https://www.football-data.co.uk/mmz4281/2526/L1.csv"
     }
 
-    colmain1,colmain2 = st.columns([1,4], border=True)
-    with colmain1:
-        col1,col2 = st.columns([1,1])
-        with col1: 
-            selected_league_name = st.selectbox("Choose a league:", list(league_options.keys()))
-        with col2: 
-            st.markdown("")
-            st.markdown("")
-            adhoc_clicked = st.button("Load League")
-        
-        with st.expander("Other leagues", expanded=False):
+    colmainbody1,colmainbody2,colmainbody3 = st.columns([2,3,2])
+    with colmainbody2:
+        colmain1,colmain2 = st.columns([1,2], border=True)
+        with colmain1:
             col1,col2 = st.columns([1,1])
-            with col1:
-                japan_clicked = st.button("Japan L1")
-                mls_clicked = st.button("USA MLS")
-            with col2:
-                aussie_clicked = st.button("Aussie L1")
-                fifa_clicked = st.button("WC 26")
-                fifa22_clicked = st.button("WC 22")
+            with col1: 
+                selected_league_name = st.selectbox("Choose a league:", list(league_options.keys()))
+            with col2: 
+                st.markdown("")
+                st.markdown("")
+                adhoc_clicked = st.button("Load League")
+            
+            with st.expander("Other leagues", expanded=False):
+                col1,col2 = st.columns([1,1])
+                with col1:
+                    japan_clicked = st.button("Japan L1")
+                    mls_clicked = st.button("USA MLS")
+                with col2:
+                    aussie_clicked = st.button("Aussie L1")
+                    fifa_clicked = st.button("WC 26")
+                    fifa22_clicked = st.button("WC 22")
 
-        if selected_league_name:
-            adhocurl = league_options[selected_league_name]
-        if japan_clicked:
-            st.session_state.selected_df = load_csv("https://www.football-data.co.uk/new/JPN.csv", drop_first_two=True)
-            st.session_state.selected_league = "Japan L1"
-        elif mls_clicked:
-            st.session_state.selected_df = load_csv("https://www.football-data.co.uk/new/USA.csv", drop_first_two=True)
-            st.session_state.selected_league = "USA MLS"
-        elif aussie_clicked:
-            st.session_state.selected_df = load_root_csv("Aussie.csv")
-            st.session_state.selected_league = "Aussie L1"
-        elif fifa_clicked:
-            st.session_state.selected_df = load_root_csv("Fifa.csv")
-            st.session_state.selected_league = "World Cup 2026"
-        elif fifa22_clicked:
-            st.session_state.selected_df = load_root_csv("Fifa22.csv")
-            st.session_state.selected_league = "World Cup 2022"
-        elif adhoc_clicked:
-            st.session_state.selected_df = load_csv(adhocurl)
-            st.session_state.selected_league = selected_league_name
-    with colmain2:
-        # Always work from session_state
-        try:
-            reloaded_df = st.session_state.selected_df.reset_index(drop=True)
-        except Exception as e:
-            st.stop()
+            if selected_league_name:
+                adhocurl = league_options[selected_league_name]
+            if japan_clicked:
+                st.session_state.selected_df = load_csv("https://www.football-data.co.uk/new/JPN.csv", drop_first_two=True)
+                st.session_state.selected_league = "Japan L1"
+            elif mls_clicked:
+                st.session_state.selected_df = load_csv("https://www.football-data.co.uk/new/USA.csv", drop_first_two=True)
+                st.session_state.selected_league = "USA MLS"
+            elif aussie_clicked:
+                st.session_state.selected_df = load_root_csv("Aussie.csv")
+                st.session_state.selected_league = "Aussie L1"
+            elif fifa_clicked:
+                st.session_state.selected_df = load_root_csv("Fifa.csv")
+                st.session_state.selected_league = "World Cup 2026"
+            elif fifa22_clicked:
+                st.session_state.selected_df = load_root_csv("Fifa22.csv")
+                st.session_state.selected_league = "World Cup 2022"
+            elif adhoc_clicked:
+                st.session_state.selected_df = load_csv(adhocurl)
+                st.session_state.selected_league = selected_league_name
+        with colmain2:
+            # Always work from session_state
+            try:
+                reloaded_df = st.session_state.selected_df.reset_index(drop=True)
+            except Exception as e:
+                st.stop()
 
-        # Editable table first
-        with st.expander(f"Editable Table - {st.session_state.selected_league}", expanded=False):
-            edited_df = st.data_editor(reloaded_df, num_rows="dynamic", height=45 * 35)
-            st.session_state.selected_df = edited_df
+            # Editable table first
+            with st.expander(f"Editable Table - {st.session_state.selected_league}", expanded=False):
+                edited_df = st.data_editor(reloaded_df, num_rows="dynamic", height=45 * 35)
+                st.session_state.selected_df = edited_df
 
 
         
