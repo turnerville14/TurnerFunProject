@@ -442,7 +442,8 @@ if st.session_state.logged_in:
                 mls_clicked = st.button("USA MLS")
             with col2:
                 aussie_clicked = st.button("Aussie L1")
-                fifa_clicked = st.button("FA Cup")
+                fifa_clicked = st.button("WC 26")
+                fifa22_clicked = st.button("WC 22")
 
         if selected_league_name:
             adhocurl = league_options[selected_league_name]
@@ -457,7 +458,10 @@ if st.session_state.logged_in:
             st.session_state.selected_league = "Aussie L1"
         elif fifa_clicked:
             st.session_state.selected_df = load_root_csv("Fifa.csv")
-            st.session_state.selected_league = "Fifa"
+            st.session_state.selected_league = "World Cup 2026"
+        elif fifa22_clicked:
+            st.session_state.selected_df = load_root_csv("Fifa22.csv")
+            st.session_state.selected_league = "World Cup 2022"
         elif adhoc_clicked:
             st.session_state.selected_df = load_csv(adhocurl)
             st.session_state.selected_league = selected_league_name
