@@ -403,9 +403,11 @@ if st.session_state.logged_in:
 
     # --- Initialize session state ---
     if "selected_df" not in st.session_state:
-        st.session_state.selected_df = None
+        'st.session_state.selected_df = None
+        st.session_state.selected_df = load_root_csv("Fifa.csv")
     if "selected_league" not in st.session_state:
-        st.session_state.selected_league = None
+        'st.session_state.selected_league = None
+        st.session_state.selected_league = "World Cup 2026"
 
     league_options = {
         "England EPL": "https://www.football-data.co.uk/mmz4281/2526/E0.csv",
