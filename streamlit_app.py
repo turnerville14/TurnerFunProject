@@ -350,8 +350,11 @@ if st.session_state.logged_in:
             # 4. Home Handicap -2
             # Logic: Home wins by 2 or more = "-", else "+"
             hc = '-' if (h - a) >= 2 else '+'
+
+            # Logic: Home wins by 2 or more = "-", else "+"
+            hc2 = '-' if (h - a) >= 3 else '+'
             
-            data.append({'score': f'{h}-{a}', 'HDA': hda, 'OU': ou, 'OU2': ou2, 'OE': oe, 'HC': hc})
+            data.append({'score': f'{h}-{a}', 'HDA': hda, 'OU': ou, 'OU2': ou2, 'OE': oe, 'HC': hc, 'HC2' : hc2})
         return data
 
     def get_highway_grid(results, rows=6):
@@ -532,7 +535,8 @@ if st.session_state.logged_in:
                     ('OU', 'Over / Under 2.5'),
                     ('OU2', 'Over / Under 3.5'),
                     ('OE', 'Odd / Even'),
-                    ('HC', 'Home Handicap (-1.5)')
+                    ('HC', 'Home Handicap (-1.5)'),
+                    ('HC2', 'Home Handicap (-2.5)')
                 ]
 
                 # Now loop through categories
