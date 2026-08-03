@@ -355,7 +355,7 @@ if st.session_state.logged_in:
             hc2 = '-' if (h - a) >= 3 else '+'
 
             # Logic: Home wins by 2 or more = "-", else "+"
-            hc3 = '-' if (h - a) >= 3 else '+'
+            hc3 = '-' if (h - a) >= 4 else '+'
             
             data.append({'score': f'{h}-{a}', 'HDA': hda, 'OU': ou, 'OU2': ou2, 'OE': oe, 'HC': hc, 'HC2' : hc2, 'HC3' : hc3})
         return data
