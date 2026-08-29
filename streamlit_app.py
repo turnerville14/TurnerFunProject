@@ -416,7 +416,7 @@ if st.session_state.logged_in:
         # st.session_state.selected_league = "World Cup 2026"
 
     league_options = {
-        "England EPL": "https://www.football-data.co.uk/mmz4281/2527/E0.csv",
+        "England EPL": "https://www.football-data.co.uk/mmz4281/2627/E0.csv",
         "England Championship": "https://www.football-data.co.uk/mmz4281/2527/E1.csv",
         "England League 1": "https://www.football-data.co.uk/mmz4281/2527/E2.csv",
         "England League 2": "https://www.football-data.co.uk/mmz4281/2527/E3.csv",
