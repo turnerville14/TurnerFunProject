@@ -409,28 +409,28 @@ if st.session_state.logged_in:
 
     # --- Initialize session state ---
     if "selected_df" not in st.session_state:
-        #st.session_state.selected_df = None
-        st.session_state.selected_df = load_root_csv("Fifa.csv")
+        st.session_state.selected_df = None
+        # st.session_state.selected_df = load_root_csv("Fifa.csv")
     if "selected_league" not in st.session_state:
-        #st.session_state.selected_league = None
-        st.session_state.selected_league = "World Cup 2026"
+        st.session_state.selected_league = None
+        # st.session_state.selected_league = "World Cup 2026"
 
     league_options = {
-        "England EPL": "https://www.football-data.co.uk/mmz4281/2526/E0.csv",
-        "England Championship": "https://www.football-data.co.uk/mmz4281/2526/E1.csv",
-        "England League 1": "https://www.football-data.co.uk/mmz4281/2526/E2.csv",
-        "England League 2": "https://www.football-data.co.uk/mmz4281/2526/E3.csv",
-        "Germany Bundesliga 1": "https://www.football-data.co.uk/mmz4281/2526/D1.csv",
-        "Germany Bundesliga 2": "https://www.football-data.co.uk/mmz4281/2526/D2.csv",
-        "Italy Serie A": "https://www.football-data.co.uk/mmz4281/2526/I1.csv",
-        "Italy Serie B": "https://www.football-data.co.uk/mmz4281/2526/I2.csv",
-        "Spain Laliga": "https://www.football-data.co.uk/mmz4281/2526/SP1.csv",
-        "Spain Segunda": "https://www.football-data.co.uk/mmz4281/2526/SP2.csv",
-        "France Le Championnat": "https://www.football-data.co.uk/mmz4281/2526/F1.csv",
-        "France Div 2": "https://www.football-data.co.uk/mmz4281/2526/F2.csv",
-        "Netherlands Eredivisie": "https://www.football-data.co.uk/mmz4281/2526/N1.csv",
-        "Portugal Liga 1": "https://www.football-data.co.uk/mmz4281/2526/P1.csv",
-        "Turkey Ligi 1": "https://www.football-data.co.uk/mmz4281/2526/L1.csv"
+        "England EPL": "https://www.football-data.co.uk/mmz4281/2527/E0.csv",
+        "England Championship": "https://www.football-data.co.uk/mmz4281/2527/E1.csv",
+        "England League 1": "https://www.football-data.co.uk/mmz4281/2527/E2.csv",
+        "England League 2": "https://www.football-data.co.uk/mmz4281/2527/E3.csv",
+        "Germany Bundesliga 1": "https://www.football-data.co.uk/mmz4281/2527/D1.csv",
+        "Germany Bundesliga 2": "https://www.football-data.co.uk/mmz4281/2527/D2.csv",
+        "Italy Serie A": "https://www.football-data.co.uk/mmz4281/2527/I1.csv",
+        "Italy Serie B": "https://www.football-data.co.uk/mmz4281/2527/I2.csv",
+        "Spain Laliga": "https://www.football-data.co.uk/mmz4281/2527/SP1.csv",
+        "Spain Segunda": "https://www.football-data.co.uk/mmz4281/2527/SP2.csv",
+        "France Le Championnat": "https://www.football-data.co.uk/mmz4281/2527/F1.csv",
+        "France Div 2": "https://www.football-data.co.uk/mmz4281/2527/F2.csv",
+        "Netherlands Eredivisie": "https://www.football-data.co.uk/mmz4281/2527/N1.csv",
+        "Portugal Liga 1": "https://www.football-data.co.uk/mmz4281/2527/P1.csv",
+        "Turkey Ligi 1": "https://www.football-data.co.uk/mmz4281/2527/L1.csv"
     }
 
     colmainbody1,colmainbody2,colmainbody3 = st.columns([2,3,2])
